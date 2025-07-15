@@ -1,0 +1,98 @@
+import React, { useState } from 'react';
+import { MessageCircle, X, Send } from 'lucide-react';
+
+const Chatbot = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState([
+    { id: 1, text: "Hello! I'm here to help you with information about our forensic and civil protection services. How can I assist you today?", sender: 'bot' }
+  ]);
+  const [inputMessage, setInputMessage] = useState('');
+
+  const handleSendMessage = () => {
+    if (inputMessage.trim()) {
+      const newMessage = {
+        id: messages.length + 1,
+        text: inputMessage,
+        sender: 'user' as const
+      };
+      
+      setMessages([...messages, newMessage]);
+      setInputMessage('');
+      
+      // Simulate bot response
+      setTimeout(() => {
+        const botResponse = {
+          id: messages.length + 2,
+          text: "Thank you for your message. A specialist will review your inquiry and get back to you shortly. For immediate assistance, please call us at +1 (555) 123-4567.",
+          sender: 'bot' as const
+        };
+        setMessages(prev => [...prev, botResponse]);
+      }, 1000);
+    }
+  };
+
+  return (
+    <div className="fixed bottom-4 right-4 z-50">
+      {isOpen && (
+        <div className="mb-4 bg-white rounded-lg shadow-2xl w-80 h-96 flex flex-col border border-gray-200">
+          <div className="bg-blue-800 text-white p-4 rounded-t-lg flex justify-between items-center">
+            <h3 className="font-semibold">Chat Support</h3>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="text-white hover:text-gray-200 transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          
+          <div className="flex-1 p-4 overflow-y-auto space-y-3">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`max-w-xs px-3 py-2 rounded-lg text-sm ${
+                    message.sender === 'user'
+                      ? 'bg-blue-800 text-white'
+                      : 'bg-gray-100 text-gray-800'
+                  }`}
+                >
+                  {message.text}
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="p-4 border-t border-gray-200">
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                placeholder="Type your message..."
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <button
+                onClick={handleSendMessage}
+                className="bg-blue-800 text-white px-3 py-2 rounded-lg hover:bg-blue-900 transition-colors"
+              >
+                <Send className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="bg-blue-800 text-white p-3 rounded-full shadow-lg hover:bg-blue-900 transition-colors"
+      >
+        <MessageCircle className="h-6 w-6" />
+      </button>
+    </div>
+  );
+};
+
+export default Chatbot;
