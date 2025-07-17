@@ -30,7 +30,7 @@ const Navbar = () => {
               }`}
             >
               {t('nav.home')}
-              {t('nav.home')}
+            </Link>
             
             <div className="relative">
               <button
@@ -75,7 +75,7 @@ const Navbar = () => {
               }`}
             >
               {t('nav.about')}
-              {t('nav.about')}
+            </Link>
             
             <Link
               to="/blog"
@@ -84,7 +84,7 @@ const Navbar = () => {
               }`}
             >
               {t('nav.blog')}
-              {t('nav.blog')}
+            </Link>
             
             <LanguageToggle />
             
@@ -95,10 +95,6 @@ const Navbar = () => {
               {t('nav.contact')}
             </Link>
           </div>
-            <div className="py-2">
-              <LanguageToggle />
-            </div>
-            
 
           {/* Mobile menu button */}
           <div className="md:hidden">
@@ -113,8 +109,6 @@ const Navbar = () => {
 
         {/* Mobile Navigation */}
         {isOpen && (
-            )
-            }
           <div className="md:hidden border-t border-gray-200 py-4">
             <div className="flex flex-col space-y-4">
               <Link
@@ -124,7 +118,7 @@ const Navbar = () => {
                 }`}
                 onClick={() => setIsOpen(false)}
               >
-                Home
+                {t('nav.home')}
               </Link>
               
               <div className="pl-4 space-y-2">
@@ -133,21 +127,21 @@ const Navbar = () => {
                   className="block text-gray-700 hover:text-blue-800 transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
-                  Civil Protection
+                  {t('nav.civilProtection')}
                 </Link>
                 <Link
                   to="/services/forensics"
                   className="block text-gray-700 hover:text-blue-800 transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
-                  Forensics
+                  {t('nav.forensics')}
                 </Link>
                 <Link
                   to="/services/explosives-analysis"
                   className="block text-gray-700 hover:text-blue-800 transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
-                  Explosives Analysis
+                  {t('nav.explosivesAnalysis')}
                 </Link>
               </div>
               
@@ -158,26 +152,30 @@ const Navbar = () => {
                 }`}
                 onClick={() => setIsOpen(false)}
               >
-                About
+                {t('nav.about')}
               </Link>
               
               <Link
-                {t('nav.civilProtection')}
+                to="/blog"
                 className={`text-gray-700 hover:text-blue-800 transition-colors ${
                   isActive('/blog') ? 'text-blue-800 font-medium' : ''
                 }`}
                 onClick={() => setIsOpen(false)}
               >
-                Blog
-                {t('nav.forensics')}
+                {t('nav.blog')}
+              </Link>
+
+              <div className="py-2">
+                <LanguageToggle />
+              </div>
               
               <Link
                 to="/contact"
                 className="bg-blue-800 text-white px-4 py-2 rounded-lg hover:bg-blue-900 transition-colors text-center"
                 onClick={() => setIsOpen(false)}
               >
-                {t('nav.explosivesAnalysis')}
-              {t('nav.contact')}
+                {t('nav.contact')}
+              </Link>
             </div>
           </div>
         )}
