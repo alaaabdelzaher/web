@@ -261,11 +261,14 @@ export class DatabaseService {
     const fileName = `${Date.now()}.${fileExt}`;
     const filePath = `${folder}/${fileName}`;
 
-    const { error: uploadError } = await supabase.storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
       .from('media')
       .upload(filePath, file);
 
-    if (uploadError) throw uploadError;
+    if (uploadError) {
+      console.error('Upload error:', uploadError);
+      throw new Error(`Failed to upload file: ${uploadError.message}`);
+    }
 
     const { data: { publicUrl } } = supabase.storage
       .from('media')
@@ -327,11 +330,14 @@ export class DatabaseService {
     const { data, error } = await supabase
       .from('content_sections')
       .select('*')
-      .eq('section_key', key)
-      .single();
+      .eq('section_key', key);
     
-    if (error) throw error;
-    return data as ContentSection;
+    if (error) {
+      console.warn(`Content section '${key}' not found:`, error);
+      return null;
+    }
+    
+    return data && data.length > 0 ? data[0] as ContentSection : null;
   }
 
   static async updateContentSection(key: string, content: string) {
@@ -364,11 +370,14 @@ export class DatabaseService {
     const { data, error } = await supabase
       .from('site_settings')
       .select('*')
-      .eq('setting_key', key)
-      .single();
+      .eq('setting_key', key);
     
-    if (error) throw error;
-    return data as SiteSetting;
+    if (error) {
+      console.warn(`Site setting '${key}' not found:`, error);
+      return null;
+    }
+    
+    return data && data.length > 0 ? data[0] as SiteSetting : null;
   }
 
   static async updateSiteSetting(key: string, value: string) {
