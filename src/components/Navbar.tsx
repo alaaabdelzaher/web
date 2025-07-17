@@ -113,6 +113,8 @@ const Navbar = () => {
 
         {/* Mobile Navigation */}
         {isOpen && (
+            )
+            }
           <div className="md:hidden border-t border-gray-200 py-4">
             <div className="flex flex-col space-y-4">
               <Link
