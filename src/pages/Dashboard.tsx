@@ -4,8 +4,10 @@ import {
   Plus, Search, Filter, Eye, Save, Globe, Shield, MessageSquare, Image,
   Calendar, Tag, Star, Award, Phone, Mail, MapPin, Clock, Target,
   ChevronDown, ChevronRight, Home, Briefcase, Info, BookOpen, Contact,
-  AlertCircle, CheckCircle, Loader
+  AlertCircle, CheckCircle, Loader, LogOut, Camera, Palette
 } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
+import LanguageToggle from '../components/LanguageToggle';
 import { 
   useBlogPosts, 
   usePages, 
@@ -16,10 +18,21 @@ import {
   useContactMessages 
 } from '../hooks/useDatabase';
 
-const Dashboard = () => {
+interface DashboardProps {
+  onLogout?: () => void;
+}
+
+const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
+  const { language, t } = useLanguage();
   const [activeTab, setActiveTab] = useState('overview');
   const [expandedSection, setExpandedSection] = useState('');
   const [editingContent, setEditingContent] = useState<{[key: string]: string}>({});
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [siteColors, setSiteColors] = useState({
+    primary: '#1e40af',
+    secondary: '#f97316',
+    accent: '#059669'
+  });
 
   // Database hooks
   const { posts, loading: postsLoading, createPost, updatePost, deletePost } = useBlogPosts();
@@ -31,10 +44,10 @@ const Dashboard = () => {
   const { messages, loading: messagesLoading, updateMessageStatus } = useContactMessages();
 
   const stats = [
-    { label: 'إجمالي الحالات', value: posts.length.toString(), change: '+12%', icon: FileText },
-    { label: 'المشاريع النشطة', value: pages.filter(p => p.status === 'published').length.toString(), change: '+5%', icon: TrendingUp },
-    { label: 'التقارير الخبيرة', value: files.length.toString(), change: '+8%', icon: BarChart },
-    { label: 'رضا العملاء', value: '98.5%', change: '+2%', icon: Users },
+    { label: language === 'ar' ? 'إجمالي الحالات' : 'Total Cases', value: posts.length.toString(), change: '+12%', icon: FileText },
+    { label: language === 'ar' ? 'المشاريع النشطة' : 'Active Projects', value: pages.filter(p => p.status === 'published').length.toString(), change: '+5%', icon: TrendingUp },
+    { label: language === 'ar' ? 'التقارير الخبيرة' : 'Expert Reports', value: files.length.toString(), change: '+8%', icon: BarChart },
+    { label: language === 'ar' ? 'رضا العملاء' : 'Client Satisfaction', value: '98.5%', change: '+2%', icon: Users },
   ];
 
   const toggleSection = (section: string) => {
@@ -53,18 +66,18 @@ const Dashboard = () => {
         delete newState[key];
         return newState;
       });
-      alert('تم حفظ المحتوى بنجاح!');
+      alert(language === 'ar' ? 'تم حفظ المحتوى بنجاح!' : 'Content saved successfully!');
     } catch (error) {
-      alert('حدث خطأ في حفظ المحتوى');
+      alert(language === 'ar' ? 'حدث خطأ في حفظ المحتوى' : 'Error saving content');
     }
   };
 
   const handleSaveSetting = async (key: string, value: string) => {
     try {
       await updateSetting(key, value);
-      alert('تم حفظ الإعداد بنجاح!');
+      alert(language === 'ar' ? 'تم حفظ الإعداد بنجاح!' : 'Setting saved successfully!');
     } catch (error) {
-      alert('حدث خطأ في حفظ الإعداد');
+      alert(language === 'ar' ? 'حدث خطأ في حفظ الإعداد' : 'Error saving setting');
     }
   };
 
@@ -73,50 +86,83 @@ const Dashboard = () => {
     if (file) {
       try {
         await uploadFile(file);
-        alert('تم رفع الملف بنجاح!');
+        alert(language === 'ar' ? 'تم رفع الملف بنجاح!' : 'File uploaded successfully!');
       } catch (error) {
-        alert('حدث خطأ في رفع الملف');
+        alert(language === 'ar' ? 'حدث خطأ في رفع الملف' : 'Error uploading file');
+      }
+    }
+  };
+
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setLogoFile(file);
+      try {
+        const uploadedFile = await uploadFile(file, 'logos');
+        await updateSetting('site_logo', uploadedFile.url);
+        alert(language === 'ar' ? 'تم تحديث الشعار بنجاح!' : 'Logo updated successfully!');
+      } catch (error) {
+        alert(language === 'ar' ? 'حدث خطأ في تحديث الشعار' : 'Error updating logo');
       }
     }
   };
 
   const handleCreateBlogPost = async () => {
-    const title = prompt('عنوان المقال:');
+    const title = prompt(language === 'ar' ? 'عنوان المقال:' : 'Article title:');
     if (title) {
       try {
         await createPost({
           title,
           slug: title.toLowerCase().replace(/\s+/g, '-'),
-          content: 'محتوى المقال...',
-          author_name: 'المحرر',
-          category: 'عام',
+          content: language === 'ar' ? 'محتوى المقال...' : 'Article content...',
+          author_name: language === 'ar' ? 'المحرر' : 'Editor',
+          category: language === 'ar' ? 'عام' : 'General',
           status: 'draft'
         });
-        alert('تم إنشاء المقال بنجاح!');
+        alert(language === 'ar' ? 'تم إنشاء المقال بنجاح!' : 'Article created successfully!');
       } catch (error) {
-        alert('حدث خطأ في إنشاء المقال');
+        alert(language === 'ar' ? 'حدث خطأ في إنشاء المقال' : 'Error creating article');
       }
     }
   };
 
+  const handleColorChange = async (colorType: string, color: string) => {
+    setSiteColors(prev => ({ ...prev, [colorType]: color }));
+    await updateSetting(`site_color_${colorType}`, color);
+  };
+
   if (postsLoading || pagesLoading || filesLoading || sectionsLoading || settingsLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center" dir="rtl">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center" dir={language === 'ar' ? 'rtl' : 'ltr'}>
         <div className="text-center">
           <Loader className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-gray-600">جاري تحميل البيانات...</p>
+          <p className="text-gray-600">{language === 'ar' ? 'جاري تحميل البيانات...' : 'Loading data...'}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8" dir="rtl">
+    <div className="min-h-screen bg-gray-50 py-8" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">لوحة التحكم الشاملة</h1>
-          <p className="text-gray-600 mt-2">إدارة كاملة لموقع الاستشارات الجنائية والحماية المدنية</p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">{t('dashboard.title')}</h1>
+            <p className="text-gray-600 mt-2">{t('dashboard.subtitle')}</p>
+          </div>
+          <div className="flex items-center space-x-4 space-x-reverse">
+            <LanguageToggle />
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                className="flex items-center space-x-2 space-x-reverse px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>{language === 'ar' ? 'تسجيل الخروج' : 'Logout'}</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Navigation Tabs */}
@@ -124,14 +170,18 @@ const Dashboard = () => {
           <div className="border-b border-gray-200">
             <nav className="flex space-x-8 space-x-reverse overflow-x-auto">
               {[
-                { id: 'overview', label: 'نظرة عامة', icon: BarChart },
-                { id: 'pages', label: 'إدارة الصفحات', icon: FileText },
-                { id: 'content', label: 'إدارة المحتوى', icon: Edit3 },
-                { id: 'blog', label: 'إدارة المدونة', icon: BookOpen },
-                { id: 'media', label: 'مكتبة الوسائط', icon: Image },
-                { id: 'messages', label: 'الرسائل', icon: MessageSquare },
-                { id: 'chatbot', label: 'الشات بوت', icon: MessageSquare },
-                { id: 'settings', label: 'الإعدادات', icon: Settings },
+                { id: 'overview', label: t('dashboard.overview'), icon: BarChart },
+                { id: 'branding', label: language === 'ar' ? 'الهوية البصرية' : 'Branding', icon: Palette },
+                { id: 'pages', label: t('dashboard.pages'), icon: FileText },
+                { id: 'content', label: t('dashboard.content'), icon: Edit3 },
+                { id: 'blog', label: t('dashboard.blog'), icon: BookOpen },
+                { id: 'media', label: t('dashboard.media'), icon: Image },
+                { id: 'messages', label: t('dashboard.messages'), icon: MessageSquare },
+                { id: 'chatbot', label: t('dashboard.chatbot'), icon: MessageSquare },
+                { id: 'seo', label: t('dashboard.seo'), icon: TrendingUp },
+                { id: 'analytics', label: t('dashboard.analytics'), icon: BarChart },
+                { id: 'settings', label: t('dashboard.settings'), icon: Settings },
+                { id: 'security', label: t('dashboard.security'), icon: Shield },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -168,7 +218,7 @@ const Dashboard = () => {
                   </div>
                   <div className="mt-2">
                     <span className="text-sm text-green-600 font-medium">{stat.change}</span>
-                    <span className="text-sm text-gray-500"> من الشهر الماضي</span>
+                    <span className="text-sm text-gray-500"> {language === 'ar' ? 'من الشهر الماضي' : 'from last month'}</span>
                   </div>
                 </div>
               ))}
@@ -176,18 +226,24 @@ const Dashboard = () => {
 
             {/* Quick Actions */}
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">إجراءات سريعة</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                {language === 'ar' ? 'إجراءات سريعة' : 'Quick Actions'}
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <button 
                   onClick={handleCreateBlogPost}
                   className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
                 >
                   <Plus className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm font-medium text-gray-600">إضافة مقال جديد</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    {language === 'ar' ? 'إضافة مقال جديد' : 'Add New Article'}
+                  </p>
                 </button>
                 <label className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors cursor-pointer">
                   <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm font-medium text-gray-600">رفع ملفات وسائط</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    {language === 'ar' ? 'رفع ملفات وسائط' : 'Upload Media Files'}
+                  </p>
                   <input type="file" className="hidden" onChange={handleFileUpload} />
                 </label>
                 <button 
@@ -195,14 +251,18 @@ const Dashboard = () => {
                   className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
                 >
                   <Settings className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm font-medium text-gray-600">تحديث الإعدادات</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    {language === 'ar' ? 'تحديث الإعدادات' : 'Update Settings'}
+                  </p>
                 </button>
               </div>
             </div>
 
             {/* Recent Activity */}
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">النشاط الأخير</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                {language === 'ar' ? 'النشاط الأخير' : 'Recent Activity'}
+              </h2>
               <div className="space-y-3">
                 {posts.slice(0, 5).map((post) => (
                   <div key={post.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -210,7 +270,9 @@ const Dashboard = () => {
                       <BookOpen className="h-5 w-5 text-blue-600" />
                       <div>
                         <p className="font-medium text-gray-900">{post.title}</p>
-                        <p className="text-sm text-gray-500">تم التحديث: {new Date(post.updated_at).toLocaleDateString('ar')}</p>
+                        <p className="text-sm text-gray-500">
+                          {language === 'ar' ? 'تم التحديث:' : 'Updated:'} {new Date(post.updated_at).toLocaleDateString(language === 'ar' ? 'ar' : 'en')}
+                        </p>
                       </div>
                     </div>
                     <span className={`px-2 py-1 text-xs rounded-full ${
@@ -218,11 +280,149 @@ const Dashboard = () => {
                       post.status === 'draft' ? 'bg-gray-100 text-gray-800' :
                       'bg-yellow-100 text-yellow-800'
                     }`}>
-                      {post.status === 'published' ? 'منشور' : 
-                       post.status === 'draft' ? 'مسودة' : 'مؤرشف'}
+                      {post.status === 'published' ? (language === 'ar' ? 'منشور' : 'Published') : 
+                       post.status === 'draft' ? (language === 'ar' ? 'مسودة' : 'Draft') : 
+                       (language === 'ar' ? 'مؤرشف' : 'Archived')}
                     </span>
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Branding Tab */}
+        {activeTab === 'branding' && (
+          <div className="space-y-8">
+            <div className="bg-white rounded-lg shadow">
+              <div className="p-6 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {language === 'ar' ? 'إدارة الهوية البصرية' : 'Brand Identity Management'}
+                </h2>
+              </div>
+              <div className="p-6 space-y-8">
+                {/* Logo Management */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">
+                    {language === 'ar' ? 'شعار الموقع' : 'Website Logo'}
+                  </h3>
+                  <div className="flex items-center space-x-4 space-x-reverse">
+                    <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
+                      {getSetting('site_logo') ? (
+                        <img src={getSetting('site_logo')} alt="Logo" className="w-full h-full object-contain rounded-lg" />
+                      ) : (
+                        <Camera className="h-8 w-8 text-gray-400" />
+                      )}
+                    </div>
+                    <div>
+                      <label className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 cursor-pointer inline-flex items-center">
+                        <Upload className="h-4 w-4 mr-2" />
+                        {language === 'ar' ? 'رفع شعار جديد' : 'Upload New Logo'}
+                        <input type="file" className="hidden" accept="image/*" onChange={handleLogoUpload} />
+                      </label>
+                      <p className="text-sm text-gray-500 mt-2">
+                        {language === 'ar' ? 'PNG, JPG, SVG - الحد الأقصى 2MB' : 'PNG, JPG, SVG - Max 2MB'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Color Scheme */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">
+                    {language === 'ar' ? 'نظام الألوان' : 'Color Scheme'}
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {language === 'ar' ? 'اللون الأساسي' : 'Primary Color'}
+                      </label>
+                      <div className="flex items-center space-x-2 space-x-reverse">
+                        <input
+                          type="color"
+                          value={siteColors.primary}
+                          onChange={(e) => handleColorChange('primary', e.target.value)}
+                          className="w-12 h-10 rounded border border-gray-300"
+                        />
+                        <input
+                          type="text"
+                          value={siteColors.primary}
+                          onChange={(e) => handleColorChange('primary', e.target.value)}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {language === 'ar' ? 'اللون الثانوي' : 'Secondary Color'}
+                      </label>
+                      <div className="flex items-center space-x-2 space-x-reverse">
+                        <input
+                          type="color"
+                          value={siteColors.secondary}
+                          onChange={(e) => handleColorChange('secondary', e.target.value)}
+                          className="w-12 h-10 rounded border border-gray-300"
+                        />
+                        <input
+                          type="text"
+                          value={siteColors.secondary}
+                          onChange={(e) => handleColorChange('secondary', e.target.value)}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {language === 'ar' ? 'لون التمييز' : 'Accent Color'}
+                      </label>
+                      <div className="flex items-center space-x-2 space-x-reverse">
+                        <input
+                          type="color"
+                          value={siteColors.accent}
+                          onChange={(e) => handleColorChange('accent', e.target.value)}
+                          className="w-12 h-10 rounded border border-gray-300"
+                        />
+                        <input
+                          type="text"
+                          value={siteColors.accent}
+                          onChange={(e) => handleColorChange('accent', e.target.value)}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Typography */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">
+                    {language === 'ar' ? 'الخطوط' : 'Typography'}
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {language === 'ar' ? 'خط العناوين' : 'Heading Font'}
+                      </label>
+                      <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option>Inter</option>
+                        <option>Roboto</option>
+                        <option>Open Sans</option>
+                        <option>Poppins</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {language === 'ar' ? 'خط النص' : 'Body Font'}
+                      </label>
+                      <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option>Inter</option>
+                        <option>Roboto</option>
+                        <option>Open Sans</option>
+                        <option>Source Sans Pro</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

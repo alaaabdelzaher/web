@@ -1,40 +1,42 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Shield, Award, Users, CheckCircle, ArrowRight, Star } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Home = () => {
+  const { language, t } = useLanguage();
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-blue-900 to-blue-800 text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-                ForensicPro - Trusted Expertise in Civil Protection & Forensics
+                {t('home.hero.title')}
               </h1>
               <p className="text-xl text-blue-100 mb-8 leading-relaxed">
-                With over 20 years of experience, we provide comprehensive forensic analysis, 
-                civil protection services, and expert consultation for legal and emergency situations.
+                {t('home.hero.subtitle')}
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link
                   to="/contact"
                   className="bg-orange-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors text-center"
                 >
-                  Book Consultation
+                  {t('home.cta.consultation')}
                 </Link>
                 <Link
                   to="/contact"
                   className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-800 transition-colors text-center"
                 >
-                  Contact Us
+                  {t('home.cta.contact')}
                 </Link>
                 <Link
                   to="/services"
                   className="bg-transparent border-2 border-blue-300 text-blue-100 px-8 py-3 rounded-lg font-semibold hover:bg-blue-300 hover:text-blue-900 transition-colors text-center"
                 >
-                  View Services
+                  {t('home.cta.services')}
                 </Link>
               </div>
             </div>
@@ -43,9 +45,11 @@ const Home = () => {
                 <div className="flex items-center justify-center mb-4">
                   <Shield className="h-16 w-16 text-blue-300" />
                 </div>
-                <h3 className="text-2xl font-semibold mb-4">20+ Years of Excellence</h3>
+                <h3 className="text-2xl font-semibold mb-4">
+                  {language === 'ar' ? '20+ سنة من التميز' : '20+ Years of Excellence'}
+                </h3>
                 <p className="text-blue-100">
-                  Professional certifications and expert testimony in over 1,000 cases
+                  {language === 'ar' ? 'شهادات مهنية وشهادة خبيرة في أكثر من 1000 قضية' : 'Professional certifications and expert testimony in over 1,000 cases'}
                 </p>
               </div>
             </div>
@@ -57,24 +61,36 @@ const Home = () => {
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Professional Certifications</h2>
-            <p className="text-xl text-gray-600">Recognized expertise and industry credentials</p>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">{t('home.certifications.title')}</h2>
+            <p className="text-xl text-gray-600">{t('home.certifications.subtitle')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-white p-6 rounded-lg shadow-md text-center">
               <Award className="h-12 w-12 text-blue-800 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Certified Fire Investigator</h3>
-              <p className="text-gray-600">International Association of Fire Chiefs</p>
+              <h3 className="text-xl font-semibold mb-2">
+                {language === 'ar' ? 'محقق حرائق معتمد' : 'Certified Fire Investigator'}
+              </h3>
+              <p className="text-gray-600">
+                {language === 'ar' ? 'الجمعية الدولية لرؤساء الإطفاء' : 'International Association of Fire Chiefs'}
+              </p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md text-center">
               <Award className="h-12 w-12 text-blue-800 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Forensic Science Specialist</h3>
-              <p className="text-gray-600">American Board of Criminalistics</p>
+              <h3 className="text-xl font-semibold mb-2">
+                {language === 'ar' ? 'أخصائي علوم جنائية' : 'Forensic Science Specialist'}
+              </h3>
+              <p className="text-gray-600">
+                {language === 'ar' ? 'المجلس الأمريكي للجريمة' : 'American Board of Criminalistics'}
+              </p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md text-center">
               <Award className="h-12 w-12 text-blue-800 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Explosives Expert</h3>
-              <p className="text-gray-600">International Association of Bomb Technicians</p>
+              <h3 className="text-xl font-semibold mb-2">
+                {language === 'ar' ? 'خبير متفجرات' : 'Explosives Expert'}
+              </h3>
+              <p className="text-gray-600">
+                {language === 'ar' ? 'الجمعية الدولية لفنيي القنابل' : 'International Association of Bomb Technicians'}
+              </p>
             </div>
           </div>
         </div>
@@ -84,82 +100,100 @@ const Home = () => {
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Core Services</h2>
-            <p className="text-xl text-gray-600">Comprehensive expertise across multiple disciplines</p>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">{t('home.services.title')}</h2>
+            <p className="text-xl text-gray-600">{t('home.services.subtitle')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-white p-8 rounded-lg shadow-lg border border-gray-200 hover:shadow-xl transition-shadow">
               <Shield className="h-12 w-12 text-blue-800 mb-4" />
-              <h3 className="text-2xl font-semibold mb-4">Civil Protection</h3>
+              <h3 className="text-2xl font-semibold mb-4">{t('services.civil.title')}</h3>
               <ul className="space-y-2 text-gray-600 mb-6">
                 <li className="flex items-center">
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  Building inspection reports
+                  <span className="text-sm">
+                    {language === 'ar' ? 'تقارير فحص المباني' : 'Building inspection reports'}
+                  </span>
                 </li>
                 <li className="flex items-center">
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  Fire cause analysis
+                  <span className="text-sm">
+                    {language === 'ar' ? 'تحليل أسباب الحرائق' : 'Fire cause analysis'}
+                  </span>
                 </li>
                 <li className="flex items-center">
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  Emergency planning
+                  <span className="text-sm">
+                    {language === 'ar' ? 'التخطيط للطوارئ' : 'Emergency planning'}
+                  </span>
                 </li>
               </ul>
               <Link
                 to="/services/civil-protection"
                 className="inline-flex items-center text-blue-800 hover:text-blue-900 font-semibold"
               >
-                Learn More <ArrowRight className="h-4 w-4 ml-1" />
+                {t('common.learnMore')} <ArrowRight className="h-4 w-4 ml-1" />
               </Link>
             </div>
 
             <div className="bg-white p-8 rounded-lg shadow-lg border border-gray-200 hover:shadow-xl transition-shadow">
               <Users className="h-12 w-12 text-blue-800 mb-4" />
-              <h3 className="text-2xl font-semibold mb-4">Forensics</h3>
+              <h3 className="text-2xl font-semibold mb-4">{t('services.forensics.title')}</h3>
               <ul className="space-y-2 text-gray-600 mb-6">
                 <li className="flex items-center">
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  Crime scene analysis
+                  <span className="text-sm">
+                    {language === 'ar' ? 'تحليل مسرح الجريمة' : 'Crime scene analysis'}
+                  </span>
                 </li>
                 <li className="flex items-center">
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  Physical evidence examination
+                  <span className="text-sm">
+                    {language === 'ar' ? 'فحص الأدلة المادية' : 'Physical evidence examination'}
+                  </span>
                 </li>
                 <li className="flex items-center">
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  Death cause determination
+                  <span className="text-sm">
+                    {language === 'ar' ? 'تحديد سبب الوفاة' : 'Death cause determination'}
+                  </span>
                 </li>
               </ul>
               <Link
                 to="/services/forensics"
                 className="inline-flex items-center text-blue-800 hover:text-blue-900 font-semibold"
               >
-                Learn More <ArrowRight className="h-4 w-4 ml-1" />
+                {t('common.learnMore')} <ArrowRight className="h-4 w-4 ml-1" />
               </Link>
             </div>
 
             <div className="bg-white p-8 rounded-lg shadow-lg border border-gray-200 hover:shadow-xl transition-shadow">
               <Award className="h-12 w-12 text-blue-800 mb-4" />
-              <h3 className="text-2xl font-semibold mb-4">Explosives Analysis</h3>
+              <h3 className="text-2xl font-semibold mb-4">{t('services.explosives.title')}</h3>
               <ul className="space-y-2 text-gray-600 mb-6">
                 <li className="flex items-center">
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  Components analysis
+                  <span className="text-sm">
+                    {language === 'ar' ? 'تحليل المكونات' : 'Components analysis'}
+                  </span>
                 </li>
                 <li className="flex items-center">
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  Technical reports
+                  <span className="text-sm">
+                    {language === 'ar' ? 'التقارير الفنية' : 'Technical reports'}
+                  </span>
                 </li>
                 <li className="flex items-center">
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  Expert testimony
+                  <span className="text-sm">
+                    {language === 'ar' ? 'الشهادة الخبيرة' : 'Expert testimony'}
+                  </span>
                 </li>
               </ul>
               <Link
                 to="/services/explosives-analysis"
                 className="inline-flex items-center text-blue-800 hover:text-blue-900 font-semibold"
               >
-                Learn More <ArrowRight className="h-4 w-4 ml-1" />
+                {t('common.learnMore')} <ArrowRight className="h-4 w-4 ml-1" />
               </Link>
             </div>
           </div>
@@ -170,8 +204,8 @@ const Home = () => {
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Client Testimonials</h2>
-            <p className="text-xl text-gray-600">Trusted by legal professionals and organizations</p>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">{t('home.testimonials.title')}</h2>
+            <p className="text-xl text-gray-600">{t('home.testimonials.subtitle')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="bg-white p-8 rounded-lg shadow-md">
@@ -181,10 +215,14 @@ const Home = () => {
                 ))}
               </div>
               <p className="text-gray-600 mb-4">
-                "ForensicPro provided exceptional forensic analysis that was crucial to our case. 
-                Their detailed reports and expert testimony were instrumental in achieving justice."
+                {language === 'ar' ? 
+                  '"قدمت فورنسيك برو تحليلاً جنائياً استثنائياً كان بالغ الأهمية لقضيتنا. تقاريرهم المفصلة وشهادتهم الخبيرة كانت أساسية في تحقيق العدالة."' :
+                  '"ForensicPro provided exceptional forensic analysis that was crucial to our case. Their detailed reports and expert testimony were instrumental in achieving justice."'
+                }
               </p>
-              <div className="font-semibold">— Sarah Johnson, District Attorney</div>
+              <div className="font-semibold">
+                {language === 'ar' ? '— سارة جونسون، المدعي العام' : '— Sarah Johnson, District Attorney'}
+              </div>
             </div>
             <div className="bg-white p-8 rounded-lg shadow-md">
               <div className="flex items-center mb-4">
@@ -193,10 +231,14 @@ const Home = () => {
                 ))}
               </div>
               <p className="text-gray-600 mb-4">
-                "The civil protection consultation helped us implement comprehensive emergency 
-                protocols. Their expertise saved us time and potentially prevented disasters."
+                {language === 'ar' ? 
+                  '"ساعدتنا استشارة الحماية المدنية في تنفيذ بروتوكولات طوارئ شاملة. خبرتهم وفرت علينا الوقت ومنعت كوارث محتملة."' :
+                  '"The civil protection consultation helped us implement comprehensive emergency protocols. Their expertise saved us time and potentially prevented disasters."'
+                }
               </p>
-              <div className="font-semibold">— Michael Chen, Facility Manager</div>
+              <div className="font-semibold">
+                {language === 'ar' ? '— مايكل تشين، مدير المرافق' : '— Michael Chen, Facility Manager'}
+              </div>
             </div>
           </div>
         </div>
@@ -205,22 +247,22 @@ const Home = () => {
       {/* CTA Section */}
       <section className="py-16 bg-blue-800 text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold mb-6">Ready to Get Started?</h2>
+          <h2 className="text-3xl font-bold mb-6">{t('home.cta.final.title')}</h2>
           <p className="text-xl text-blue-100 mb-8">
-            Contact us today for a consultation and discover how our expertise can help your case.
+            {t('home.cta.final.subtitle')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/contact"
               className="bg-orange-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors"
             >
-              Book Consultation
+              {t('home.cta.consultation')}
             </Link>
             <Link
               to="/contact"
               className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-800 transition-colors"
             >
-              Contact Us
+              {t('home.cta.contact')}
             </Link>
           </div>
         </div>
