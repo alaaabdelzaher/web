@@ -204,6 +204,30 @@ export function useContentSections() {
 
   const updateSection = async (key: string, content: string) => {
     try {
+      // First check if section exists
+      const existingSection = sections.find(s => s.section_key === key);
+      
+      if (existingSection) {
+        await DatabaseService.updateContentSection(key, content);
+      } else {
+        // If section doesn't exist, create it
+        const { error } = await supabase
+          .from('content_sections')
+          .insert({
+            section_key: key,
+            section_name: key.replace('_', ' ').toUpperCase(),
+            content_type: 'text',
+            content,
+            is_active: true,
+            sort_order: sections.length + 1
+          });
+        
+        if (error) throw error;
+      }
+      
+      await fetchSections();
+    } catch (error) {
+      console.error('Error updating section:', error);
       const updatedSection = await DatabaseService.updateContentSection(key, content);
       setSections(prev => prev.map(section => 
         section.section_key === key ? updatedSection : section
@@ -248,6 +272,29 @@ export function useSiteSettings() {
 
   const updateSetting = async (key: string, value: string) => {
     try {
+      // First try to update existing setting
+      const existingSetting = settings.find(s => s.setting_key === key);
+      
+      if (existingSetting) {
+        await DatabaseService.updateSiteSetting(key, value);
+      } else {
+        // If setting doesn't exist, create it
+        const { error } = await supabase
+          .from('site_settings')
+          .insert({
+            setting_key: key,
+            setting_value: value,
+            setting_type: 'text',
+            category: 'general',
+            is_public: true
+          });
+        
+        if (error) throw error;
+      }
+      
+      await fetchSettings();
+    } catch (error) {
+      console.error('Error updating setting:', error);
       const updatedSetting = await DatabaseService.updateSiteSetting(key, value);
       setSettings(prev => prev.map(setting => 
         setting.setting_key === key ? updatedSetting : setting
