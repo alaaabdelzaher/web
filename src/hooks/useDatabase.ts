@@ -205,26 +205,22 @@ export function useContentSections() {
 
   const updateSection = async (key: string, content: string) => {
     try {
-      // First check if section exists
-      const existingSection = sections.find(s => s.section_key === key);
+      // Use upsert to handle both insert and update
+      const { error } = await supabase
+        .from('content_sections')
+        .upsert({
+          section_key: key,
+          section_name: key.replace('_', ' ').toUpperCase(),
+          content_type: 'text',
+          content,
+          is_active: true,
+          sort_order: sections.length + 1,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'section_key'
+        });
       
-      if (existingSection) {
-        await DatabaseService.updateContentSection(key, content);
-      } else {
-        // If section doesn't exist, create it
-        const { error } = await supabase
-          .from('content_sections')
-          .insert({
-            section_key: key,
-            section_name: key.replace('_', ' ').toUpperCase(),
-            content_type: 'text',
-            content,
-            is_active: true,
-            sort_order: sections.length + 1
-          });
-        
-        if (error) throw error;
-      }
+      if (error) throw error;
       
       await fetchSections();
     } catch (error) {
@@ -267,25 +263,7 @@ export function useSiteSettings() {
 
   const updateSetting = async (key: string, value: string) => {
     try {
-      // First try to update existing setting
-      const existingSetting = settings.find(s => s.setting_key === key);
-      
-      if (existingSetting) {
-        await DatabaseService.updateSiteSetting(key, value);
-      } else {
-        // If setting doesn't exist, create it
-        const { error } = await supabase
-          .from('site_settings')
-          .insert({
-            setting_key: key,
-            setting_value: value,
-            setting_type: 'text',
-            category: 'general',
-            is_public: true
-          });
-        
-        if (error) throw error;
-      }
+      await DatabaseService.updateSiteSetting(key, value);
       
       await fetchSettings();
     } catch (error) {

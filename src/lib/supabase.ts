@@ -383,11 +383,16 @@ export class DatabaseService {
   static async updateSiteSetting(key: string, value: string) {
     const { data, error } = await supabase
       .from('site_settings')
-      .update({ 
-        setting_value: value, 
+      .upsert({ 
+        setting_key: key,
+        setting_value: value,
+        setting_type: 'text',
+        category: 'general',
+        is_public: true,
         updated_at: new Date().toISOString() 
+      }, {
+        onConflict: 'setting_key'
       })
-      .eq('setting_key', key)
       .select()
       .single();
     
