@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 import { DatabaseService, BlogPost, Page, MediaFile, ContentSection, SiteSetting, ChatbotResponse, ContactMessage } from '../lib/supabase';
 
 // Hook for managing blog posts
@@ -228,14 +229,8 @@ export function useContentSections() {
       await fetchSections();
     } catch (error) {
       console.error('Error updating section:', error);
-      const updatedSection = await DatabaseService.updateContentSection(key, content);
-      setSections(prev => prev.map(section => 
-        section.section_key === key ? updatedSection : section
-      ));
-      return updatedSection;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'حدث خطأ في تحديث القسم');
-      throw err;
+      setError(error instanceof Error ? error.message : 'حدث خطأ في تحديث القسم');
+      throw error;
     }
   };
 
@@ -295,14 +290,8 @@ export function useSiteSettings() {
       await fetchSettings();
     } catch (error) {
       console.error('Error updating setting:', error);
-      const updatedSetting = await DatabaseService.updateSiteSetting(key, value);
-      setSettings(prev => prev.map(setting => 
-        setting.setting_key === key ? updatedSetting : setting
-      ));
-      return updatedSetting;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'حدث خطأ في تحديث الإعداد');
-      throw err;
+      setError(error instanceof Error ? error.message : 'حدث خطأ في تحديث الإعداد');
+      throw error;
     }
   };
 
