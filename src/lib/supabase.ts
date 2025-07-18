@@ -137,9 +137,12 @@ export class DatabaseService {
       .from('pages')
       .select('*')
       .eq('slug', slug)
-      .single();
+      .maybeSingle();
     
-    if (error) throw error;
+    if (error) {
+      console.warn(`Page '${slug}' not found:`, error);
+      return null;
+    }
     return data as Page;
   }
 
@@ -202,9 +205,12 @@ export class DatabaseService {
       .from('blog_posts')
       .select('*')
       .eq('slug', slug)
-      .single();
+      .maybeSingle();
     
-    if (error) throw error;
+    if (error) {
+      console.warn(`Blog post '${slug}' not found:`, error);
+      return null;
+    }
     return data as BlogPost;
   }
 
@@ -330,14 +336,15 @@ export class DatabaseService {
     const { data, error } = await supabase
       .from('content_sections')
       .select('*')
-      .eq('section_key', key);
+      .eq('section_key', key)
+      .maybeSingle();
     
     if (error) {
       console.warn(`Content section '${key}' not found:`, error);
       return null;
     }
     
-    return data && data.length > 0 ? data[0] as ContentSection : null;
+    return data as ContentSection | null;
   }
 
   static async updateContentSection(key: string, content: string) {
@@ -370,14 +377,15 @@ export class DatabaseService {
     const { data, error } = await supabase
       .from('site_settings')
       .select('*')
-      .eq('setting_key', key);
+      .eq('setting_key', key)
+      .maybeSingle();
     
     if (error) {
       console.warn(`Site setting '${key}' not found:`, error);
       return null;
     }
     
-    return data && data.length > 0 ? data[0] as SiteSetting : null;
+    return data as SiteSetting | null;
   }
 
   static async updateSiteSetting(key: string, value: string) {
