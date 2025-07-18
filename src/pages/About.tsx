@@ -1,17 +1,19 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Award, Users, Target, CheckCircle } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const About = () => {
+  const { language, t } = useLanguage();
+
   return (
-    <div className="min-h-screen py-16">
+    <div className="min-h-screen py-16" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">About ForensicPro</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">{t('about.title')}</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            With over 20 years of experience, we are a leading forensic and civil protection 
-            consulting firm dedicated to providing expert analysis and testimony.
+            {t('about.subtitle')}
           </p>
         </div>
 
@@ -19,43 +21,44 @@ const About = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
           <div className="bg-white rounded-lg shadow-lg p-8 text-center">
             <Target className="h-12 w-12 text-blue-800 mx-auto mb-4" />
-            <h3 className="text-2xl font-semibold mb-4">Our Mission</h3>
+            <h3 className="text-2xl font-semibold mb-4">{t('about.mission.title')}</h3>
             <p className="text-gray-600">
-              To provide accurate, reliable, and scientifically sound forensic analysis 
-              and civil protection services that serve justice and protect communities.
+              {t('about.mission.desc')}
             </p>
           </div>
           <div className="bg-white rounded-lg shadow-lg p-8 text-center">
             <Users className="h-12 w-12 text-blue-800 mx-auto mb-4" />
-            <h3 className="text-2xl font-semibold mb-4">Our Team</h3>
+            <h3 className="text-2xl font-semibold mb-4">{t('about.team.title')}</h3>
             <p className="text-gray-600">
-              A dedicated team of certified professionals with extensive experience 
-              in forensic science, civil protection, and expert witness testimony.
+              {t('about.team.desc')}
             </p>
           </div>
           <div className="bg-white rounded-lg shadow-lg p-8 text-center">
             <Award className="h-12 w-12 text-blue-800 mx-auto mb-4" />
-            <h3 className="text-2xl font-semibold mb-4">Our Values</h3>
+            <h3 className="text-2xl font-semibold mb-4">{t('about.values.title')}</h3>
             <p className="text-gray-600">
-              Integrity, accuracy, and scientific rigor guide everything we do. 
-              We are committed to the highest standards of professional excellence.
+              {t('about.values.desc')}
             </p>
           </div>
         </div>
 
         {/* Company History */}
         <div className="bg-gray-50 rounded-lg p-8 mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Our History</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">{t('about.history.title')}</h2>
           <div className="space-y-6">
             <div className="flex items-start space-x-4">
               <div className="bg-blue-800 text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0">
                 <span className="text-sm font-bold">1</span>
               </div>
               <div>
-                <h3 className="font-semibold text-lg">2004 - Foundation</h3>
+                <h3 className="font-semibold text-lg">
+                  {language === 'ar' ? '2004 - التأسيس' : '2004 - Foundation'}
+                </h3>
                 <p className="text-gray-600">
-                  Founded by Dr. John Smith, a former FBI forensic expert, to provide 
-                  independent forensic analysis services to legal professionals.
+                  {language === 'ar' ? 
+                    'تأسست على يد الدكتور جون سميث، خبير الطب الشرعي السابق في مكتب التحقيقات الفيدرالي، لتقديم خدمات التحليل الجنائي المستقل للمهنيين القانونيين.' :
+                    'Founded by Dr. John Smith, a former FBI forensic expert, to provide independent forensic analysis services to legal professionals.'
+                  }
                 </p>
               </div>
             </div>

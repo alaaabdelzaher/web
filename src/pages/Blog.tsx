@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, User, Tag, Search, ArrowRight } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Blog = () => {
+  const { language, t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
@@ -69,7 +71,9 @@ const Blog = () => {
     }
   ];
 
-  const categories = ['all', 'Fire Investigation', 'Forensics', 'Civil Protection', 'Explosives', 'Legal', 'Emergency Planning'];
+  const categories = language === 'ar' ? 
+    ['all', 'تحقيق الحرائق', 'الطب الشرعي', 'الحماية المدنية', 'المتفجرات', 'قانوني', 'التخطيط للطوارئ'] :
+    ['all', 'Fire Investigation', 'Forensics', 'Civil Protection', 'Explosives', 'Legal', 'Emergency Planning'];
 
   const filteredPosts = blogPosts.filter(post => {
     const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -79,14 +83,13 @@ const Blog = () => {
   });
 
   return (
-    <div className="min-h-screen py-16">
+    <div className="min-h-screen py-16" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Expert Insights & Articles</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">{t('blog.title')}</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Stay informed with the latest developments in forensic science, civil protection, 
-            and investigative techniques from our expert team.
+            {t('blog.subtitle')}
           </p>
         </div>
 
@@ -97,7 +100,7 @@ const Blog = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search articles..."
+                placeholder={t('blog.search.placeholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -110,7 +113,7 @@ const Blog = () => {
             >
               {categories.map(category => (
                 <option key={category} value={category}>
-                  {category === 'all' ? 'All Categories' : category}
+                  {category === 'all' ? t('blog.categories.all') : category}
                 </option>
               ))}
             </select>

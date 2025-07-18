@@ -1,18 +1,25 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Award, Search, FileText, Shield, CheckCircle } from 'lucide-react';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const ExplosivesAnalysis = () => {
+  const { language, t } = useLanguage();
+
   return (
-    <div className="min-h-screen py-16">
+    <div className="min-h-screen py-16" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
           <Award className="h-16 w-16 text-blue-800 mx-auto mb-4" />
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Explosives Analysis</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            {language === 'ar' ? 'تحليل المتفجرات' : 'Explosives Analysis'}
+          </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Specialized explosives analysis services including component identification, 
-            technical reporting, and expert consultation for legal and investigative purposes.
+            {language === 'ar' ? 
+              'خدمات متخصصة في تحليل المتفجرات تشمل تحديد المكونات والتقارير الفنية والاستشارة الخبيرة للأغراض القانونية والتحقيقية.' :
+              'Specialized explosives analysis services including component identification, technical reporting, and expert consultation for legal and investigative purposes.'
+            }
           </p>
         </div>
 

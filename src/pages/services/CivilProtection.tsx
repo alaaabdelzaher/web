@@ -1,18 +1,25 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Shield, FileText, Flame, AlertTriangle, CheckCircle } from 'lucide-react';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const CivilProtection = () => {
+  const { language, t } = useLanguage();
+
   return (
-    <div className="min-h-screen py-16">
+    <div className="min-h-screen py-16" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
           <Shield className="h-16 w-16 text-blue-800 mx-auto mb-4" />
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Civil Protection Services</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            {language === 'ar' ? 'خدمات الحماية المدنية' : 'Civil Protection Services'}
+          </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Comprehensive civil protection services including building inspections, fire analysis, 
-            and emergency planning to ensure safety and compliance.
+            {language === 'ar' ? 
+              'خدمات شاملة للحماية المدنية تشمل فحص المباني وتحليل الحرائق والتخطيط للطوارئ لضمان السلامة والامتثال.' :
+              'Comprehensive civil protection services including building inspections, fire analysis, and emergency planning to ensure safety and compliance.'
+            }
           </p>
         </div>
 

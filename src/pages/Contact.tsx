@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Phone, Mail, MapPin, Clock, Send } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Contact = () => {
+  const { language, t } = useLanguage();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -14,7 +16,10 @@ const Contact = () => {
     e.preventDefault();
     // Handle form submission here
     console.log('Form submitted:', formData);
-    alert('Thank you for your message. We will get back to you within 24 hours.');
+    alert(language === 'ar' ? 
+      'شكراً لك على رسالتك. سنعود إليك خلال 24 ساعة.' : 
+      'Thank you for your message. We will get back to you within 24 hours.'
+    );
     setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
   };
 
@@ -26,25 +31,24 @@ const Contact = () => {
   };
 
   return (
-    <div className="min-h-screen py-16">
+    <div className="min-h-screen py-16" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Contact Us</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">{t('contact.title')}</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Get in touch with our expert team for consultation on forensic analysis 
-            and civil protection services.
+            {t('contact.subtitle')}
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Contact Form */}
           <div className="bg-white rounded-lg shadow-lg p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Send us a Message</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('contact.form.title')}</h2>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                  Full Name *
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                  {t('contact.form.name')} <span className="text-red-500 ml-1">*</span>
                 </label>
                 <input
                   type="text"

@@ -8,6 +8,9 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import LanguageToggle from '../components/LanguageToggle';
+import UserManagement from '../components/UserManagement';
+import NavigationManagement from '../components/NavigationManagement';
+import BackupRestore from '../components/BackupRestore';
 import { 
   useBlogPosts, 
   usePages, 
@@ -171,7 +174,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             <nav className="flex space-x-8 space-x-reverse overflow-x-auto">
               {[
                 { id: 'overview', label: t('dashboard.overview'), icon: BarChart },
+                { id: 'users', label: t('dashboard.users'), icon: Users },
+                { id: 'permissions', label: t('dashboard.permissions'), icon: Shield },
+                { id: 'navigation', label: t('dashboard.navigation'), icon: Settings },
                 { id: 'branding', label: language === 'ar' ? 'الهوية البصرية' : 'Branding', icon: Palette },
+                { id: 'appearance', label: t('dashboard.appearance'), icon: Palette },
                 { id: 'pages', label: t('dashboard.pages'), icon: FileText },
                 { id: 'content', label: t('dashboard.content'), icon: Edit3 },
                 { id: 'blog', label: t('dashboard.blog'), icon: BookOpen },
@@ -181,6 +188,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 { id: 'seo', label: t('dashboard.seo'), icon: TrendingUp },
                 { id: 'analytics', label: t('dashboard.analytics'), icon: BarChart },
                 { id: 'settings', label: t('dashboard.settings'), icon: Settings },
+                { id: 'backup', label: t('dashboard.backup'), icon: Upload },
                 { id: 'security', label: t('dashboard.security'), icon: Shield },
               ].map((tab) => (
                 <button
@@ -290,6 +298,111 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             </div>
           </div>
         )}
+
+        {/* User Management Tab */}
+        {activeTab === 'users' && <UserManagement />}
+
+        {/* Permissions Tab */}
+        {activeTab === 'permissions' && (
+          <div className="space-y-8">
+            <div className="bg-white rounded-lg shadow">
+              <div className="p-6 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {language === 'ar' ? 'إدارة الصلاحيات' : 'Permissions Management'}
+                </h2>
+              </div>
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="bg-red-50 p-4 rounded-lg">
+                    <h3 className="font-semibold text-red-800 mb-2">
+                      {language === 'ar' ? 'مدير' : 'Administrator'}
+                    </h3>
+                    <ul className="text-sm text-red-700 space-y-1">
+                      <li>• {language === 'ar' ? 'الوصول الكامل' : 'Full access'}</li>
+                      <li>• {language === 'ar' ? 'إدارة المستخدمين' : 'User management'}</li>
+                      <li>• {language === 'ar' ? 'إدارة الإعدادات' : 'Settings management'}</li>
+                    </ul>
+                  </div>
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <h3 className="font-semibold text-blue-800 mb-2">
+                      {language === 'ar' ? 'محرر' : 'Editor'}
+                    </h3>
+                    <ul className="text-sm text-blue-700 space-y-1">
+                      <li>• {language === 'ar' ? 'إدارة المحتوى' : 'Content management'}</li>
+                      <li>• {language === 'ar' ? 'إدارة المدونة' : 'Blog management'}</li>
+                      <li>• {language === 'ar' ? 'إدارة الوسائط' : 'Media management'}</li>
+                    </ul>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h3 className="font-semibold text-gray-800 mb-2">
+                      {language === 'ar' ? 'مشاهد' : 'Viewer'}
+                    </h3>
+                    <ul className="text-sm text-gray-700 space-y-1">
+                      <li>• {language === 'ar' ? 'عرض المحتوى فقط' : 'View content only'}</li>
+                      <li>• {language === 'ar' ? 'عرض التقارير' : 'View reports'}</li>
+                      <li>• {language === 'ar' ? 'لا يمكن التعديل' : 'No editing permissions'}</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Navigation Management Tab */}
+        {activeTab === 'navigation' && <NavigationManagement />}
+
+        {/* Appearance Tab */}
+        {activeTab === 'appearance' && (
+          <div className="space-y-8">
+            <div className="bg-white rounded-lg shadow">
+              <div className="p-6 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {language === 'ar' ? 'إعدادات المظهر' : 'Appearance Settings'}
+                </h2>
+              </div>
+              <div className="p-6 space-y-6">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">
+                    {language === 'ar' ? 'القوالب المتاحة' : 'Available Themes'}
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="border-2 border-blue-500 rounded-lg p-4 bg-blue-50">
+                      <div className="w-full h-24 bg-gradient-to-r from-blue-800 to-blue-900 rounded mb-3"></div>
+                      <h4 className="font-semibold text-blue-800">
+                        {language === 'ar' ? 'القالب الافتراضي' : 'Default Theme'}
+                      </h4>
+                      <p className="text-sm text-blue-600 mt-1">
+                        {language === 'ar' ? 'نشط حالياً' : 'Currently Active'}
+                      </p>
+                    </div>
+                    <div className="border border-gray-300 rounded-lg p-4 hover:border-gray-400 cursor-pointer">
+                      <div className="w-full h-24 bg-gradient-to-r from-green-600 to-green-700 rounded mb-3"></div>
+                      <h4 className="font-semibold text-gray-800">
+                        {language === 'ar' ? 'القالب الأخضر' : 'Green Theme'}
+                      </h4>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {language === 'ar' ? 'متاح' : 'Available'}
+                      </p>
+                    </div>
+                    <div className="border border-gray-300 rounded-lg p-4 hover:border-gray-400 cursor-pointer">
+                      <div className="w-full h-24 bg-gradient-to-r from-purple-600 to-purple-700 rounded mb-3"></div>
+                      <h4 className="font-semibold text-gray-800">
+                        {language === 'ar' ? 'القالب البنفسجي' : 'Purple Theme'}
+                      </h4>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {language === 'ar' ? 'متاح' : 'Available'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Backup & Restore Tab */}
+        {activeTab === 'backup' && <BackupRestore />}
 
         {/* Branding Tab */}
         {activeTab === 'branding' && (

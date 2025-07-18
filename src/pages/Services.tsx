@@ -1,16 +1,18 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Shield, Users, Award, ArrowRight } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Services = () => {
+  const { language, t } = useLanguage();
+
   return (
-    <div className="min-h-screen py-16">
+    <div className="min-h-screen py-16" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Our Services</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">{t('services.title')}</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Comprehensive forensic and civil protection services backed by 20+ years of expertise 
-            and professional certifications.
+            {t('services.subtitle')}
           </p>
         </div>
 
@@ -19,12 +21,11 @@ const Services = () => {
           <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
             <div className="bg-gradient-to-r from-blue-800 to-blue-900 p-6">
               <Shield className="h-12 w-12 text-white mb-4" />
-              <h2 className="text-2xl font-bold text-white">Civil Protection</h2>
+              <h2 className="text-2xl font-bold text-white">{t('services.civil.title')}</h2>
             </div>
             <div className="p-6">
               <p className="text-gray-600 mb-6">
-                Comprehensive civil protection services including building inspections, 
-                fire analysis, and emergency planning for organizations and legal cases.
+                {t('services.civil.desc')}
               </p>
               <div className="space-y-3 mb-6">
                 <div className="flex items-start space-x-3">

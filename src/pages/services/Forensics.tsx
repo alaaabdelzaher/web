@@ -1,18 +1,25 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Users, Search, FileText, Shield, CheckCircle } from 'lucide-react';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const Forensics = () => {
+  const { language, t } = useLanguage();
+
   return (
-    <div className="min-h-screen py-16">
+    <div className="min-h-screen py-16" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
           <Users className="h-16 w-16 text-blue-800 mx-auto mb-4" />
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Forensic Services</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            {language === 'ar' ? 'خدمات الطب الشرعي' : 'Forensic Services'}
+          </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Professional forensic analysis services including crime scene investigation, 
-            evidence examination, and expert testimony for legal proceedings.
+            {language === 'ar' ? 
+              'خدمات تحليل جنائي مهنية تشمل تحقيق مسرح الجريمة وفحص الأدلة والشهادة الخبيرة للإجراءات القانونية.' :
+              'Professional forensic analysis services including crime scene investigation, evidence examination, and expert testimony for legal proceedings.'
+            }
           </p>
         </div>
 
