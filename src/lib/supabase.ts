@@ -402,7 +402,7 @@ export class DatabaseService {
         onConflict: 'setting_key'
       })
       .select()
-      .single();
+      .maybeSingle();
     
     if (error) throw error;
     return data as SiteSetting;

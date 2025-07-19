@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
 import { DatabaseService, BlogPost, Page, MediaFile, ContentSection, SiteSetting, ChatbotResponse, ContactMessage } from '../lib/supabase';
 
 // Hook for managing blog posts
