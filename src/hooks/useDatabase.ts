@@ -1,5 +1,75 @@
 import { useState, useEffect } from 'react';
-import { DatabaseService, BlogPost, Page, MediaFile, ContentSection, SiteSetting, ChatbotResponse, ContactMessage } from '../lib/supabase';
+import { DatabaseService, BlogPost, Page, MediaFile, ContentSection, SiteSetting, ChatbotResponse, ContactMessage, User } from '../lib/supabase';
+
+// Hook for managing users
+export function useUsers() {
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const data = await DatabaseService.getUsers();
+      setUsers(data);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching users:', err);
+      setError(err instanceof Error ? err.message : 'حدث خطأ في تحميل المستخدمين');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createUser = async (user: Partial<User>) => {
+    try {
+      const newUser = await DatabaseService.createUser(user);
+      setUsers(prev => [newUser, ...prev]);
+      return newUser;
+    } catch (err) {
+      console.error('Error creating user:', err);
+      setError(err instanceof Error ? err.message : 'حدث خطأ في إنشاء المستخدم');
+      throw err;
+    }
+  };
+
+  const updateUser = async (id: string, updates: Partial<User>) => {
+    try {
+      const updatedUser = await DatabaseService.updateUser(id, updates);
+      setUsers(prev => prev.map(user => user.id === id ? updatedUser : user));
+      return updatedUser;
+    } catch (err) {
+      console.error('Error updating user:', err);
+      setError(err instanceof Error ? err.message : 'حدث خطأ في تحديث المستخدم');
+      throw err;
+    }
+  };
+
+  const deleteUser = async (id: string) => {
+    try {
+      await DatabaseService.deleteUser(id);
+      setUsers(prev => prev.filter(user => user.id !== id));
+    } catch (err) {
+      console.error('Error deleting user:', err);
+      setError(err instanceof Error ? err.message : 'حدث خطأ في حذف المستخدم');
+      throw err;
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  return {
+    users,
+    loading,
+    error,
+    createUser,
+    updateUser,
+    deleteUser,
+    refetch: fetchUsers
+  };
+}
 
 // Hook for managing blog posts
 export function useBlogPosts() {
@@ -12,7 +82,9 @@ export function useBlogPosts() {
       setLoading(true);
       const data = await DatabaseService.getBlogPosts();
       setPosts(data);
+      setError(null);
     } catch (err) {
+      console.error('Error fetching posts:', err);
       setError(err instanceof Error ? err.message : 'حدث خطأ في تحميل المقالات');
     } finally {
       setLoading(false);
@@ -25,6 +97,7 @@ export function useBlogPosts() {
       setPosts(prev => [newPost, ...prev]);
       return newPost;
     } catch (err) {
+      console.error('Error creating post:', err);
       setError(err instanceof Error ? err.message : 'حدث خطأ في إنشاء المقال');
       throw err;
     }
@@ -36,6 +109,7 @@ export function useBlogPosts() {
       setPosts(prev => prev.map(post => post.id === id ? updatedPost : post));
       return updatedPost;
     } catch (err) {
+      console.error('Error updating post:', err);
       setError(err instanceof Error ? err.message : 'حدث خطأ في تحديث المقال');
       throw err;
     }
@@ -46,6 +120,7 @@ export function useBlogPosts() {
       await DatabaseService.deleteBlogPost(id);
       setPosts(prev => prev.filter(post => post.id !== id));
     } catch (err) {
+      console.error('Error deleting post:', err);
       setError(err instanceof Error ? err.message : 'حدث خطأ في حذف المقال');
       throw err;
     }
@@ -77,7 +152,9 @@ export function usePages() {
       setLoading(true);
       const data = await DatabaseService.getPages();
       setPages(data);
+      setError(null);
     } catch (err) {
+      console.error('Error fetching pages:', err);
       setError(err instanceof Error ? err.message : 'حدث خطأ في تحميل الصفحات');
     } finally {
       setLoading(false);
@@ -90,6 +167,7 @@ export function usePages() {
       setPages(prev => [newPage, ...prev]);
       return newPage;
     } catch (err) {
+      console.error('Error creating page:', err);
       setError(err instanceof Error ? err.message : 'حدث خطأ في إنشاء الصفحة');
       throw err;
     }
@@ -101,6 +179,7 @@ export function usePages() {
       setPages(prev => prev.map(page => page.id === id ? updatedPage : page));
       return updatedPage;
     } catch (err) {
+      console.error('Error updating page:', err);
       setError(err instanceof Error ? err.message : 'حدث خطأ في تحديث الصفحة');
       throw err;
     }
@@ -111,6 +190,7 @@ export function usePages() {
       await DatabaseService.deletePage(id);
       setPages(prev => prev.filter(page => page.id !== id));
     } catch (err) {
+      console.error('Error deleting page:', err);
       setError(err instanceof Error ? err.message : 'حدث خطأ في حذف الصفحة');
       throw err;
     }
@@ -142,7 +222,9 @@ export function useMediaFiles() {
       setLoading(true);
       const data = await DatabaseService.getMediaFiles();
       setFiles(data);
+      setError(null);
     } catch (err) {
+      console.error('Error fetching files:', err);
       setError(err instanceof Error ? err.message : 'حدث خطأ في تحميل الملفات');
     } finally {
       setLoading(false);
@@ -155,6 +237,7 @@ export function useMediaFiles() {
       setFiles(prev => [newFile, ...prev]);
       return newFile;
     } catch (err) {
+      console.error('Error uploading file:', err);
       setError(err instanceof Error ? err.message : 'حدث خطأ في رفع الملف');
       throw err;
     }
@@ -165,6 +248,7 @@ export function useMediaFiles() {
       await DatabaseService.deleteMediaFile(id);
       setFiles(prev => prev.filter(file => file.id !== id));
     } catch (err) {
+      console.error('Error deleting file:', err);
       setError(err instanceof Error ? err.message : 'حدث خطأ في حذف الملف');
       throw err;
     }
@@ -195,7 +279,9 @@ export function useContentSections() {
       setLoading(true);
       const data = await DatabaseService.getContentSections();
       setSections(data);
+      setError(null);
     } catch (err) {
+      console.error('Error fetching sections:', err);
       setError(err instanceof Error ? err.message : 'حدث خطأ في تحميل أقسام المحتوى');
     } finally {
       setLoading(false);
@@ -204,28 +290,20 @@ export function useContentSections() {
 
   const updateSection = async (key: string, content: string) => {
     try {
-      // Use upsert to handle both insert and update
-      const { error } = await supabase
-        .from('content_sections')
-        .upsert({
-          section_key: key,
-          section_name: key.replace('_', ' ').toUpperCase(),
-          content_type: 'text',
-          content,
-          is_active: true,
-          sort_order: sections.length + 1,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'section_key'
-        });
-      
-      if (error) throw error;
-      
-      await fetchSections();
-    } catch (error) {
-      console.error('Error updating section:', error);
-      setError(error instanceof Error ? error.message : 'حدث خطأ في تحديث القسم');
-      throw error;
+      const updatedSection = await DatabaseService.updateContentSection(key, content);
+      setSections(prev => {
+        const existing = prev.find(s => s.section_key === key);
+        if (existing) {
+          return prev.map(s => s.section_key === key ? updatedSection : s);
+        } else {
+          return [...prev, updatedSection];
+        }
+      });
+      return updatedSection;
+    } catch (err) {
+      console.error('Error updating section:', err);
+      setError(err instanceof Error ? err.message : 'حدث خطأ في تحديث القسم');
+      throw err;
     }
   };
 
@@ -253,7 +331,9 @@ export function useSiteSettings() {
       setLoading(true);
       const data = await DatabaseService.getSiteSettings();
       setSettings(data);
+      setError(null);
     } catch (err) {
+      console.error('Error fetching settings:', err);
       setError(err instanceof Error ? err.message : 'حدث خطأ في تحميل الإعدادات');
     } finally {
       setLoading(false);
@@ -262,13 +342,20 @@ export function useSiteSettings() {
 
   const updateSetting = async (key: string, value: string) => {
     try {
-      await DatabaseService.updateSiteSetting(key, value);
-      
-      await fetchSettings();
-    } catch (error) {
-      console.error('Error updating setting:', error);
-      setError(error instanceof Error ? error.message : 'حدث خطأ في تحديث الإعداد');
-      throw error;
+      const updatedSetting = await DatabaseService.updateSiteSetting(key, value);
+      setSettings(prev => {
+        const existing = prev.find(s => s.setting_key === key);
+        if (existing) {
+          return prev.map(s => s.setting_key === key ? updatedSetting : s);
+        } else {
+          return [...prev, updatedSetting];
+        }
+      });
+      return updatedSetting;
+    } catch (err) {
+      console.error('Error updating setting:', err);
+      setError(err instanceof Error ? err.message : 'حدث خطأ في تحديث الإعداد');
+      throw err;
     }
   };
 
@@ -301,7 +388,9 @@ export function useChatbotResponses() {
       setLoading(true);
       const data = await DatabaseService.getChatbotResponses();
       setResponses(data);
+      setError(null);
     } catch (err) {
+      console.error('Error fetching responses:', err);
       setError(err instanceof Error ? err.message : 'حدث خطأ في تحميل ردود الشات بوت');
     } finally {
       setLoading(false);
@@ -314,6 +403,7 @@ export function useChatbotResponses() {
       setResponses(prev => [...prev, newResponse]);
       return newResponse;
     } catch (err) {
+      console.error('Error creating response:', err);
       setError(err instanceof Error ? err.message : 'حدث خطأ في إنشاء الرد');
       throw err;
     }
@@ -327,6 +417,7 @@ export function useChatbotResponses() {
       ));
       return updatedResponse;
     } catch (err) {
+      console.error('Error updating response:', err);
       setError(err instanceof Error ? err.message : 'حدث خطأ في تحديث الرد');
       throw err;
     }
@@ -337,6 +428,7 @@ export function useChatbotResponses() {
       await DatabaseService.deleteChatbotResponse(id);
       setResponses(prev => prev.filter(response => response.id !== id));
     } catch (err) {
+      console.error('Error deleting response:', err);
       setError(err instanceof Error ? err.message : 'حدث خطأ في حذف الرد');
       throw err;
     }
@@ -368,7 +460,9 @@ export function useContactMessages() {
       setLoading(true);
       const data = await DatabaseService.getContactMessages();
       setMessages(data);
+      setError(null);
     } catch (err) {
+      console.error('Error fetching messages:', err);
       setError(err instanceof Error ? err.message : 'حدث خطأ في تحميل الرسائل');
     } finally {
       setLoading(false);
@@ -383,6 +477,7 @@ export function useContactMessages() {
       ));
       return updatedMessage;
     } catch (err) {
+      console.error('Error updating message status:', err);
       setError(err instanceof Error ? err.message : 'حدث خطأ في تحديث حالة الرسالة');
       throw err;
     }

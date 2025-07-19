@@ -10,6 +10,17 @@ if (!supabaseUrl || !supabaseAnonKey) {
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Database Types
+export interface User {
+  id: string;
+  email: string;
+  full_name?: string;
+  role: 'admin' | 'editor' | 'viewer';
+  status: 'active' | 'inactive';
+  last_login?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Page {
   id: string;
   name: string;
@@ -121,6 +132,61 @@ export interface ContactMessage {
 
 // Database Service Functions
 export class DatabaseService {
+  // Users
+  static async getUsers() {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching users:', error);
+      return [];
+    }
+    return data as User[];
+  }
+
+  static async createUser(user: Partial<User>) {
+    const { data, error } = await supabase
+      .from('users')
+      .insert(user)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error creating user:', error);
+      throw error;
+    }
+    return data as User;
+  }
+
+  static async updateUser(id: string, updates: Partial<User>) {
+    const { data, error } = await supabase
+      .from('users')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error updating user:', error);
+      throw error;
+    }
+    return data as User;
+  }
+
+  static async deleteUser(id: string) {
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Error deleting user:', error);
+      throw error;
+    }
+  }
+
   // Pages
   static async getPages() {
     const { data, error } = await supabase
@@ -128,7 +194,10 @@ export class DatabaseService {
       .select('*')
       .order('updated_at', { ascending: false });
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching pages:', error);
+      return [];
+    }
     return data as Page[];
   }
 
@@ -153,7 +222,10 @@ export class DatabaseService {
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error creating page:', error);
+      throw error;
+    }
     return data as Page;
   }
 
@@ -165,7 +237,10 @@ export class DatabaseService {
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error updating page:', error);
+      throw error;
+    }
     return data as Page;
   }
 
@@ -175,7 +250,10 @@ export class DatabaseService {
       .delete()
       .eq('id', id);
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error deleting page:', error);
+      throw error;
+    }
   }
 
   // Blog Posts
@@ -185,7 +263,10 @@ export class DatabaseService {
       .select('*')
       .order('created_at', { ascending: false });
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching blog posts:', error);
+      return [];
+    }
     return data as BlogPost[];
   }
 
@@ -196,7 +277,10 @@ export class DatabaseService {
       .eq('status', 'published')
       .order('published_at', { ascending: false });
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching published blog posts:', error);
+      return [];
+    }
     return data as BlogPost[];
   }
 
@@ -221,7 +305,10 @@ export class DatabaseService {
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error creating blog post:', error);
+      throw error;
+    }
     return data as BlogPost;
   }
 
@@ -233,7 +320,10 @@ export class DatabaseService {
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error updating blog post:', error);
+      throw error;
+    }
     return data as BlogPost;
   }
 
@@ -243,12 +333,10 @@ export class DatabaseService {
       .delete()
       .eq('id', id);
     
-    if (error) throw error;
-  }
-
-  static async incrementBlogPostViews(id: string) {
-    const { error } = await supabase.rpc('increment_blog_views', { post_id: id });
-    if (error) throw error;
+    if (error) {
+      console.error('Error deleting blog post:', error);
+      throw error;
+    }
   }
 
   // Media Files
@@ -258,66 +346,85 @@ export class DatabaseService {
       .select('*')
       .order('created_at', { ascending: false });
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching media files:', error);
+      return [];
+    }
     return data as MediaFile[];
   }
 
   static async uploadMediaFile(file: File, folder: string = 'uploads') {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}.${fileExt}`;
-    const filePath = `${folder}/${fileName}`;
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `${folder}/${fileName}`;
 
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('media')
-      .upload(filePath, file);
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('media')
+        .upload(filePath, file);
 
-    if (uploadError) {
-      console.error('Upload error:', uploadError);
-      throw new Error(`Failed to upload file: ${uploadError.message}`);
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw new Error(`Failed to upload file: ${uploadError.message}`);
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('media')
+        .getPublicUrl(filePath);
+
+      const mediaFile = {
+        filename: fileName,
+        original_name: file.name,
+        file_type: file.type.split('/')[0],
+        file_size: file.size,
+        mime_type: file.type,
+        url: publicUrl,
+        folder
+      };
+
+      const { data, error } = await supabase
+        .from('media_files')
+        .insert(mediaFile)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error saving media file record:', error);
+        throw error;
+      }
+      return data as MediaFile;
+    } catch (error) {
+      console.error('Error in uploadMediaFile:', error);
+      throw error;
     }
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('media')
-      .getPublicUrl(filePath);
-
-    const mediaFile = {
-      filename: fileName,
-      original_name: file.name,
-      file_type: file.type.split('/')[0],
-      file_size: file.size,
-      mime_type: file.type,
-      url: publicUrl,
-      folder
-    };
-
-    const { data, error } = await supabase
-      .from('media_files')
-      .insert(mediaFile)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data as MediaFile;
   }
 
   static async deleteMediaFile(id: string) {
-    const { data: mediaFile } = await supabase
-      .from('media_files')
-      .select('*')
-      .eq('id', id)
-      .single();
+    try {
+      const { data: mediaFile } = await supabase
+        .from('media_files')
+        .select('*')
+        .eq('id', id)
+        .single();
 
-    if (mediaFile) {
-      const filePath = mediaFile.url.split('/').slice(-2).join('/');
-      await supabase.storage.from('media').remove([filePath]);
+      if (mediaFile) {
+        const filePath = mediaFile.url.split('/').slice(-2).join('/');
+        await supabase.storage.from('media').remove([filePath]);
+      }
+
+      const { error } = await supabase
+        .from('media_files')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        console.error('Error deleting media file:', error);
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error in deleteMediaFile:', error);
+      throw error;
     }
-
-    const { error } = await supabase
-      .from('media_files')
-      .delete()
-      .eq('id', id);
-    
-    if (error) throw error;
   }
 
   // Content Sections
@@ -328,7 +435,10 @@ export class DatabaseService {
       .eq('is_active', true)
       .order('sort_order');
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching content sections:', error);
+      return [];
+    }
     return data as ContentSection[];
   }
 
@@ -350,15 +460,24 @@ export class DatabaseService {
   static async updateContentSection(key: string, content: string) {
     const { data, error } = await supabase
       .from('content_sections')
-      .update({ 
+      .upsert({ 
+        section_key: key,
+        section_name: key.replace('_', ' ').toUpperCase(),
+        content_type: 'text',
         content, 
+        is_active: true,
+        sort_order: 0,
         updated_at: new Date().toISOString() 
+      }, {
+        onConflict: 'section_key'
       })
-      .eq('section_key', key)
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error updating content section:', error);
+      throw error;
+    }
     return data as ContentSection;
   }
 
@@ -369,7 +488,10 @@ export class DatabaseService {
       .select('*')
       .order('category', { ascending: true });
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching site settings:', error);
+      return [];
+    }
     return data as SiteSetting[];
   }
 
@@ -402,9 +524,12 @@ export class DatabaseService {
         onConflict: 'setting_key'
       })
       .select()
-      .maybeSingle();
+      .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error updating site setting:', error);
+      throw error;
+    }
     return data as SiteSetting;
   }
 
@@ -416,7 +541,10 @@ export class DatabaseService {
       .eq('is_active', true)
       .order('priority');
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching chatbot responses:', error);
+      return [];
+    }
     return data as ChatbotResponse[];
   }
 
@@ -427,7 +555,10 @@ export class DatabaseService {
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error creating chatbot response:', error);
+      throw error;
+    }
     return data as ChatbotResponse;
   }
 
@@ -439,7 +570,10 @@ export class DatabaseService {
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error updating chatbot response:', error);
+      throw error;
+    }
     return data as ChatbotResponse;
   }
 
@@ -449,7 +583,10 @@ export class DatabaseService {
       .delete()
       .eq('id', id);
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error deleting chatbot response:', error);
+      throw error;
+    }
   }
 
   // Contact Messages
@@ -459,7 +596,10 @@ export class DatabaseService {
       .select('*')
       .order('created_at', { ascending: false });
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching contact messages:', error);
+      return [];
+    }
     return data as ContactMessage[];
   }
 
@@ -470,7 +610,10 @@ export class DatabaseService {
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error creating contact message:', error);
+      throw error;
+    }
     return data as ContactMessage;
   }
 
@@ -482,7 +625,10 @@ export class DatabaseService {
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error updating contact message status:', error);
+      throw error;
+    }
     return data as ContactMessage;
   }
 
@@ -497,7 +643,9 @@ export class DatabaseService {
         additional_data: additionalData || {}
       });
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error recording analytics:', error);
+    }
   }
 
   static async getAnalytics(metricName: string, days: number = 30) {
@@ -511,7 +659,10 @@ export class DatabaseService {
       .gte('metric_date', startDate.toISOString().split('T')[0])
       .order('metric_date', { ascending: true });
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching analytics:', error);
+      return [];
+    }
     return data;
   }
 }
