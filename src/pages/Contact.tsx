@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Phone, Mail, MapPin, Clock, Send } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { DatabaseService } from '../lib/supabase';
 
 const Contact = () => {
   const { language, t } = useLanguage();
@@ -12,15 +13,42 @@ const Contact = () => {
     message: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [submitting, setSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log('Form submitted:', formData);
-    alert(language === 'ar' ? 
-      'شكراً لك على رسالتك. سنعود إليك خلال 24 ساعة.' : 
-      'Thank you for your message. We will get back to you within 24 hours.'
-    );
-    setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
+    
+    if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+      setSubmitMessage(language === 'ar' ? 'يرجى ملء جميع الحقول المطلوبة' : 'Please fill in all required fields');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await DatabaseService.createContactMessage({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        subject: formData.subject,
+        message: formData.message,
+        status: 'new'
+      });
+      
+      setSubmitMessage(language === 'ar' ? 
+        'شكراً لك على رسالتك. سنعود إليك خلال 24 ساعة.' : 
+        'Thank you for your message. We will get back to you within 24 hours.'
+      );
+      setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
+    } catch (error) {
+      setSubmitMessage(language === 'ar' ? 
+        'حدث خطأ في إرسال الرسالة. يرجى المحاولة مرة أخرى.' : 
+        'Error sending message. Please try again.'
+      );
+    } finally {
+      setSubmitting(false);
+      setTimeout(() => setSubmitMessage(''), 5000);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -45,6 +73,17 @@ const Contact = () => {
           {/* Contact Form */}
           <div className="bg-white rounded-lg shadow-lg p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('contact.form.title')}</h2>
+            
+            {submitMessage && (
+              <div className={`mb-6 p-4 rounded-lg ${
+                submitMessage.includes('خطأ') || submitMessage.includes('Error') 
+                  ? 'bg-red-50 text-red-700 border border-red-200' 
+                  : 'bg-green-50 text-green-700 border border-green-200'
+              }`}>
+                {submitMessage}
+              </div>
+            )}
+            
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
@@ -130,10 +169,15 @@ const Contact = () => {
               
               <button
                 type="submit"
-                className="w-full bg-blue-800 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-900 transition-colors flex items-center justify-center"
+                disabled={submitting}
+                className="w-full bg-blue-800 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-900 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Send className="h-4 w-4 mr-2" />
-                Send Message
+                {submitting ? (
+                  language === 'ar' ? 'جاري الإرسال...' : 'Sending...'
+                ) : (
+                  language === 'ar' ? 'إرسال الرسالة' : 'Send Message'
+                )}
               </button>
             </form>
           </div>

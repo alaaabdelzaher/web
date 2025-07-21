@@ -1,12 +1,31 @@
 import React, { useState } from 'react';
 import { MessageCircle, X, Send } from 'lucide-react';
+import { useChatbotResponses } from '../hooks/useDatabase';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Chatbot = () => {
+  const { language } = useLanguage();
+  const { responses } = useChatbotResponses();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { id: 1, text: "Hello! I'm here to help you with information about our forensic and civil protection services. How can I assist you today?", sender: 'bot' }
+    { 
+      id: 1, 
+      text: language === 'ar' ? 
+        "مرحباً! أنا هنا لمساعدتك بمعلومات حول خدمات الطب الشرعي والحماية المدنية. كيف يمكنني مساعدتك اليوم؟" :
+        "Hello! I'm here to help you with information about our forensic and civil protection services. How can I assist you today?", 
+      sender: 'bot' 
+    }
   ]);
   const [inputMessage, setInputMessage] = useState('');
+
+  const findResponse = (message: string) => {
+    const lowerMessage = message.toLowerCase();
+    return responses.find(response => 
+      response.trigger_keywords.some(keyword => 
+        lowerMessage.includes(keyword.toLowerCase())
+      )
+    );
+  };
 
   const handleSendMessage = () => {
     if (inputMessage.trim()) {
@@ -21,9 +40,17 @@ const Chatbot = () => {
       
       // Simulate bot response
       setTimeout(() => {
+        const matchedResponse = findResponse(inputMessage);
+        const responseText = matchedResponse ? 
+          matchedResponse.response_text :
+          (language === 'ar' ? 
+            "شكراً لك على رسالتك. سيقوم أحد المختصين بمراجعة استفسارك والعودة إليك قريباً. للمساعدة الفورية، يرجى الاتصال بنا على +1 (555) 123-4567." :
+            "Thank you for your message. A specialist will review your inquiry and get back to you shortly. For immediate assistance, please call us at +1 (555) 123-4567."
+          );
+
         const botResponse = {
           id: messages.length + 2,
-          text: "Thank you for your message. A specialist will review your inquiry and get back to you shortly. For immediate assistance, please call us at +1 (555) 123-4567.",
+          text: responseText,
           sender: 'bot' as const
         };
         setMessages(prev => [...prev, botResponse]);

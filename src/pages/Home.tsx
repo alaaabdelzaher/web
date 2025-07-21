@@ -2,9 +2,17 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Shield, Award, Users, CheckCircle, ArrowRight, Star } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useSiteSettings, useContentSections } from '../hooks/useDatabase';
 
 const Home = () => {
   const { language, t } = useLanguage();
+  const { getSetting } = useSiteSettings();
+  const { sections } = useContentSections();
+
+  const getContent = (key: string, fallback: string) => {
+    const section = sections.find(s => s.section_key === key);
+    return section?.content || fallback;
+  };
 
   return (
     <div className="min-h-screen" dir={language === 'ar' ? 'rtl' : 'ltr'}>
@@ -14,10 +22,10 @@ const Home = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-                {t('home.hero.title')}
+                {getContent('hero_title', t('home.hero.title'))}
               </h1>
               <p className="text-xl text-blue-100 mb-8 leading-relaxed">
-                {t('home.hero.subtitle')}
+                {getContent('hero_subtitle', t('home.hero.subtitle'))}
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link
