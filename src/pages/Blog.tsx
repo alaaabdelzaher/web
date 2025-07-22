@@ -2,85 +2,46 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, User, Tag, Search, ArrowRight } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { DatabaseService } from '../lib/supabase';
 
 const Blog = () => {
   const { language, t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [posts, setPosts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const blogPosts = [
-    {
-      id: 1,
-      title: "Understanding Fire Investigation: A Comprehensive Guide",
-      excerpt: "Learn about the scientific methods and techniques used in fire investigation, from scene examination to cause determination.",
-      author: "Dr. John Smith",
-      date: "2024-01-15",
-      category: "Fire Investigation",
-      readTime: "8 min read",
-      image: "https://images.pexels.com/photos/2471163/pexels-photo-2471163.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop"
-    },
-    {
-      id: 2,
-      title: "The Role of Forensic Science in Modern Criminal Justice",
-      excerpt: "Explore how forensic science has evolved and its crucial role in solving crimes and ensuring justice in today's legal system.",
-      author: "Sarah Johnson",
-      date: "2024-01-10",
-      category: "Forensics",
-      readTime: "6 min read",
-      image: "https://images.pexels.com/photos/5668473/pexels-photo-5668473.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop"
-    },
-    {
-      id: 3,
-      title: "Building Safety Inspections: What You Need to Know",
-      excerpt: "A detailed look at building safety inspections, including regulations, procedures, and the importance of professional assessment.",
-      author: "Michael Chen",
-      date: "2024-01-05",
-      category: "Civil Protection",
-      readTime: "5 min read",
-      image: "https://images.pexels.com/photos/3862132/pexels-photo-3862132.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop"
-    },
-    {
-      id: 4,
-      title: "Explosives Analysis: Techniques and Applications",
-      excerpt: "An overview of explosives analysis methodologies, from chemical identification to device reconstruction in forensic investigations.",
-      author: "Dr. John Smith",
-      date: "2023-12-28",
-      category: "Explosives",
-      readTime: "10 min read",
-      image: "https://images.pexels.com/photos/3862614/pexels-photo-3862614.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop"
-    },
-    {
-      id: 5,
-      title: "Expert Testimony: Best Practices for Forensic Experts",
-      excerpt: "Guidelines and best practices for forensic experts providing testimony in legal proceedings, including preparation and presentation.",
-      author: "Sarah Johnson",
-      date: "2023-12-20",
-      category: "Legal",
-      readTime: "7 min read",
-      image: "https://images.pexels.com/photos/5668772/pexels-photo-5668772.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop"
-    },
-    {
-      id: 6,
-      title: "Emergency Planning for Organizations",
-      excerpt: "Essential components of effective emergency planning, including risk assessment, response protocols, and training requirements.",
-      author: "Michael Chen",
-      date: "2023-12-15",
-      category: "Emergency Planning",
-      readTime: "9 min read",
-      image: "https://images.pexels.com/photos/3862365/pexels-photo-3862365.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop"
-    }
-  ];
+  React.useEffect(() => {
+    const loadPosts = async () => {
+      try {
+        const data = await DatabaseService.getPublishedBlogPosts();
+        setPosts(data);
+      } catch (error) {
+        console.error('Error loading posts:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadPosts();
+  }, []);
 
-  const categories = language === 'ar' ? 
-    ['all', 'تحقيق الحرائق', 'الطب الشرعي', 'الحماية المدنية', 'المتفجرات', 'قانوني', 'التخطيط للطوارئ'] :
-    ['all', 'Fire Investigation', 'Forensics', 'Civil Protection', 'Explosives', 'Legal', 'Emergency Planning'];
 
-  const filteredPosts = blogPosts.filter(post => {
+  const categories = ['all', ...Array.from(new Set(posts.map(post => post.category)))];
+
+  const filteredPosts = posts.filter(post => {
     const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          post.excerpt.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || post.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen py-16 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen py-16" dir={language === 'ar' ? 'rtl' : 'ltr'}>
@@ -124,29 +85,25 @@ const Blog = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredPosts.map(post => (
             <article key={post.id} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-              <div className="h-48 bg-gray-200 overflow-hidden">
-                <img
-                  src={post.image}
-                  alt={post.title}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                />
+              <div className="h-48 bg-gradient-to-r from-blue-800 to-blue-900 flex items-center justify-center">
+                <FileText className="h-16 w-16 text-white" />
               </div>
               <div className="p-6">
                 <div className="flex items-center space-x-4 mb-3">
                   <div className="flex items-center space-x-1 text-sm text-gray-500">
                     <Calendar className="h-4 w-4" />
-                    <span>{new Date(post.date).toLocaleDateString()}</span>
+                    <span>{new Date(post.created_at).toLocaleDateString()}</span>
                   </div>
                   <div className="flex items-center space-x-1 text-sm text-gray-500">
                     <User className="h-4 w-4" />
-                    <span>{post.author}</span>
+                    <span>{post.author_name}</span>
                   </div>
                 </div>
                 
                 <div className="flex items-center space-x-2 mb-3">
                   <Tag className="h-4 w-4 text-blue-800" />
                   <span className="text-sm text-blue-800 font-medium">{post.category}</span>
-                  <span className="text-sm text-gray-500">• {post.readTime}</span>
+                  <span className="text-sm text-gray-500">• {post.read_time} دقيقة قراءة</span>
                 </div>
                 
                 <h2 className="text-xl font-bold text-gray-900 mb-3 leading-tight">
@@ -161,7 +118,7 @@ const Blog = () => {
                   to={`/blog/${post.id}`}
                   className="inline-flex items-center text-blue-800 hover:text-blue-900 font-semibold transition-colors"
                 >
-                  Read More
+                  اقرأ المزيد
                   <ArrowRight className="h-4 w-4 ml-1" />
                 </Link>
               </div>

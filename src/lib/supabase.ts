@@ -296,7 +296,7 @@ export class DatabaseService {
         .from('blog_posts')
         .select('*')
         .eq('status', 'published')
-        .order('published_at', { ascending: false });
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
       return data as BlogPost[];

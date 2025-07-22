@@ -2,12 +2,23 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Shield, Award, Users, CheckCircle, ArrowRight, Star } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useSiteSettings, useContentSections } from '../hooks/useDatabase';
+import { DatabaseService } from '../lib/supabase';
 
 const Home = () => {
   const { language, t } = useLanguage();
-  const { getSetting } = useSiteSettings();
-  const { sections } = useContentSections();
+  const [sections, setSections] = React.useState<any[]>([]);
+
+  React.useEffect(() => {
+    const loadSections = async () => {
+      try {
+        const data = await DatabaseService.getContentSections();
+        setSections(data);
+      } catch (error) {
+        console.error('Error loading sections:', error);
+      }
+    };
+    loadSections();
+  }, []);
 
   const getContent = (key: string, fallback: string) => {
     const section = sections.find(s => s.section_key === key);

@@ -1,51 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { 
   BarChart3, 
-  Users, 
   FileText, 
   Settings, 
-  Image, 
   MessageSquare, 
-  Bot, 
-  Search, 
-  Shield, 
-  Database,
-  Navigation,
-  Palette,
   LogOut,
   Plus,
   Edit3,
   Trash2,
   Save,
-  Upload,
-  Download,
-  Eye,
-  EyeOff,
-  Calendar,
-  TrendingUp,
-  Activity,
-  Globe,
-  Mail,
-  Phone,
-  MapPin,
   CheckCircle,
   AlertCircle,
-  Loader
+  Loader,
+  Shield
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { 
-  useBlogPosts, 
-  usePages, 
-  useMediaFiles, 
-  useContentSections, 
-  useSiteSettings,
-  useChatbotResponses,
-  useContactMessages,
-  useUsers
-} from '../hooks/useDatabase';
-import UserManagement from '../components/UserManagement';
-import NavigationManagement from '../components/NavigationManagement';
-import BackupRestore from '../components/BackupRestore';
+import { DatabaseService } from '../lib/supabase';
 
 interface DashboardProps {
   onLogout: () => void;
@@ -58,23 +28,15 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
 
-  // Database hooks
-  const { posts, createPost, updatePost, deletePost, loading: postsLoading } = useBlogPosts();
-  const { pages, createPage, updatePage, deletePage, loading: pagesLoading } = usePages();
-  const { files, uploadFile, deleteFile, loading: filesLoading } = useMediaFiles();
-  const { sections, updateSection, loading: sectionsLoading } = useContentSections();
-  const { settings, updateSetting, getSetting, loading: settingsLoading } = useSiteSettings();
-  const { responses, createResponse, updateResponse, deleteResponse } = useChatbotResponses();
-  const { messages, updateMessageStatus } = useContactMessages();
-  const { users } = useUsers();
+  // Data states
+  const [posts, setPosts] = useState<any[]>([]);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [settings, setSettings] = useState<any>({});
+  const [sections, setSections] = useState<any[]>([]);
 
   // Form states
   const [editingPost, setEditingPost] = useState<any>(null);
-  const [editingPage, setEditingPage] = useState<any>(null);
   const [editingSection, setEditingSection] = useState<any>(null);
-  const [editingSetting, setEditingSetting] = useState<any>(null);
-  const [editingResponse, setEditingResponse] = useState<any>(null);
-  
   const [newPost, setNewPost] = useState({
     title: '',
     content: '',
@@ -83,45 +45,55 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     status: 'draft' as const,
     author_name: 'Admin'
   });
-  
-  const [newPage, setNewPage] = useState({
-    name: '',
-    title: '',
-    slug: '',
-    content: {},
-    status: 'draft' as const
-  });
-
-  const [newResponse, setNewResponse] = useState({
-    trigger_keywords: [''],
-    response_text: '',
-    response_type: 'text' as const,
-    is_active: true,
-    priority: 0
-  });
 
   const showMessage = (msg: string, type: 'success' | 'error' = 'success') => {
     setMessage(msg);
     setMessageType(type);
-    setTimeout(() => setMessage(''), 5000);
+    setTimeout(() => setMessage(''), 3000);
   };
 
-  // Blog Management Functions
+  // Load data
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [postsData, messagesData, sectionsData] = await Promise.all([
+        DatabaseService.getBlogPosts(),
+        DatabaseService.getContactMessages(),
+        DatabaseService.getContentSections()
+      ]);
+      
+      setPosts(postsData);
+      setMessages(messagesData);
+      setSections(sectionsData);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Blog functions
   const handleCreatePost = async () => {
     if (!newPost.title || !newPost.content) {
-      showMessage(language === 'ar' ? 'يرجى ملء العنوان والمحتوى' : 'Please fill in title and content', 'error');
+      showMessage('يرجى ملء العنوان والمحتوى', 'error');
       return;
     }
 
     try {
       setLoading(true);
       const slug = newPost.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
-      await createPost({
+      const post = await DatabaseService.createBlogPost({
         ...newPost,
         slug,
         read_time: Math.ceil(newPost.content.length / 1000) * 2,
         tags: newPost.category ? [newPost.category] : []
       });
+      
+      setPosts(prev => [post, ...prev]);
       setNewPost({
         title: '',
         content: '',
@@ -130,9 +102,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         status: 'draft',
         author_name: 'Admin'
       });
-      showMessage(language === 'ar' ? 'تم إنشاء المقال بنجاح' : 'Post created successfully');
+      showMessage('تم إنشاء المقال بنجاح');
     } catch (error) {
-      showMessage(language === 'ar' ? 'حدث خطأ في إنشاء المقال' : 'Error creating post', 'error');
+      showMessage('حدث خطأ في إنشاء المقال', 'error');
     } finally {
       setLoading(false);
     }
@@ -141,154 +113,81 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   const handleUpdatePost = async (id: string, updates: any) => {
     try {
       setLoading(true);
-      await updatePost(id, updates);
+      const updatedPost = await DatabaseService.updateBlogPost(id, updates);
+      setPosts(prev => prev.map(post => post.id === id ? updatedPost : post));
       setEditingPost(null);
-      showMessage(language === 'ar' ? 'تم تحديث المقال بنجاح' : 'Post updated successfully');
+      showMessage('تم تحديث المقال بنجاح');
     } catch (error) {
-      showMessage(language === 'ar' ? 'حدث خطأ في تحديث المقال' : 'Error updating post', 'error');
+      showMessage('حدث خطأ في تحديث المقال', 'error');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDeletePost = async (id: string) => {
-    if (confirm(language === 'ar' ? 'هل أنت متأكد من حذف هذا المقال؟' : 'Are you sure you want to delete this post?')) {
+    if (confirm('هل أنت متأكد من حذف هذا المقال؟')) {
       try {
-        await deletePost(id);
-        showMessage(language === 'ar' ? 'تم حذف المقال بنجاح' : 'Post deleted successfully');
+        await DatabaseService.deleteBlogPost(id);
+        setPosts(prev => prev.filter(post => post.id !== id));
+        showMessage('تم حذف المقال بنجاح');
       } catch (error) {
-        showMessage(language === 'ar' ? 'حدث خطأ في حذف المقال' : 'Error deleting post', 'error');
+        showMessage('حدث خطأ في حذف المقال', 'error');
       }
     }
   };
 
-  // Page Management Functions
-  const handleCreatePage = async () => {
-    if (!newPage.name || !newPage.title) {
-      showMessage(language === 'ar' ? 'يرجى ملء الاسم والعنوان' : 'Please fill in name and title', 'error');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const slug = newPage.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
-      await createPage({
-        ...newPage,
-        slug,
-        template: 'default'
-      });
-      setNewPage({
-        name: '',
-        title: '',
-        slug: '',
-        content: {},
-        status: 'draft'
-      });
-      showMessage(language === 'ar' ? 'تم إنشاء الصفحة بنجاح' : 'Page created successfully');
-    } catch (error) {
-      showMessage(language === 'ar' ? 'حدث خطأ في إنشاء الصفحة' : 'Error creating page', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Content Management Functions
+  // Content functions
   const handleUpdateSection = async (key: string, content: string) => {
     try {
       setLoading(true);
-      await updateSection(key, content);
+      const updatedSection = await DatabaseService.updateContentSection(key, content);
+      setSections(prev => {
+        const existing = prev.find(s => s.section_key === key);
+        if (existing) {
+          return prev.map(s => s.section_key === key ? updatedSection : s);
+        } else {
+          return [...prev, updatedSection];
+        }
+      });
       setEditingSection(null);
-      showMessage(language === 'ar' ? 'تم تحديث المحتوى بنجاح' : 'Content updated successfully');
+      showMessage('تم تحديث المحتوى بنجاح');
     } catch (error) {
-      showMessage(language === 'ar' ? 'حدث خطأ في تحديث المحتوى' : 'Error updating content', 'error');
+      showMessage('حدث خطأ في تحديث المحتوى', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  // Settings Management Functions
+  // Settings functions
   const handleSaveSetting = async (key: string, value: string) => {
     try {
       setLoading(true);
-      await updateSetting(key, value);
-      setEditingSetting(null);
-      showMessage(language === 'ar' ? 'تم حفظ الإعداد بنجاح' : 'Setting saved successfully');
+      await DatabaseService.updateSiteSetting(key, value);
+      setSettings(prev => ({ ...prev, [key]: value }));
+      showMessage('تم حفظ الإعداد بنجاح');
     } catch (error) {
-      showMessage(language === 'ar' ? 'حدث خطأ في حفظ الإعداد' : 'Error saving setting', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // File Upload Function
-  const handleFileUpload = async (file: File) => {
-    try {
-      setLoading(true);
-      await uploadFile(file);
-      showMessage(language === 'ar' ? 'تم رفع الملف بنجاح' : 'File uploaded successfully');
-    } catch (error) {
-      showMessage(language === 'ar' ? 'حدث خطأ في رفع الملف' : 'Error uploading file', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Chatbot Management Functions
-  const handleCreateResponse = async () => {
-    if (!newResponse.response_text || newResponse.trigger_keywords.filter(k => k.trim()).length === 0) {
-      showMessage(language === 'ar' ? 'يرجى ملء الرد والكلمات المفتاحية' : 'Please fill in response and keywords', 'error');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      await createResponse({
-        ...newResponse,
-        trigger_keywords: newResponse.trigger_keywords.filter(k => k.trim())
-      });
-      setNewResponse({
-        trigger_keywords: [''],
-        response_text: '',
-        response_type: 'text',
-        is_active: true,
-        priority: 0
-      });
-      showMessage(language === 'ar' ? 'تم إنشاء الرد بنجاح' : 'Response created successfully');
-    } catch (error) {
-      showMessage(language === 'ar' ? 'حدث خطأ في إنشاء الرد' : 'Error creating response', 'error');
+      showMessage('حدث خطأ في حفظ الإعداد', 'error');
     } finally {
       setLoading(false);
     }
   };
 
   const tabs = [
-    { id: 'overview', label: language === 'ar' ? 'نظرة عامة' : 'Overview', icon: BarChart3 },
-    { id: 'users', label: language === 'ar' ? 'إدارة المستخدمين' : 'User Management', icon: Users },
-    { id: 'pages', label: language === 'ar' ? 'إدارة الصفحات' : 'Page Management', icon: FileText },
-    { id: 'content', label: language === 'ar' ? 'إدارة المحتوى' : 'Content Management', icon: Edit3 },
-    { id: 'blog', label: language === 'ar' ? 'إدارة المدونة' : 'Blog Management', icon: FileText },
-    { id: 'media', label: language === 'ar' ? 'مكتبة الوسائط' : 'Media Library', icon: Image },
-    { id: 'messages', label: language === 'ar' ? 'الرسائل' : 'Messages', icon: MessageSquare },
-    { id: 'chatbot', label: language === 'ar' ? 'الشات بوت' : 'Chatbot', icon: Bot },
-    { id: 'navigation', label: language === 'ar' ? 'إدارة التنقل' : 'Navigation', icon: Navigation },
-    { id: 'appearance', label: language === 'ar' ? 'الهوية البصرية' : 'Appearance', icon: Palette },
-    { id: 'seo', label: language === 'ar' ? 'تحسين محركات البحث' : 'SEO', icon: Search },
-    { id: 'analytics', label: language === 'ar' ? 'التحليلات' : 'Analytics', icon: TrendingUp },
-    { id: 'settings', label: language === 'ar' ? 'الإعدادات' : 'Settings', icon: Settings },
-    { id: 'backup', label: language === 'ar' ? 'النسخ الاحتياطي' : 'Backup', icon: Database },
-    { id: 'security', label: language === 'ar' ? 'الأمان' : 'Security', icon: Shield }
+    { id: 'overview', label: 'نظرة عامة', icon: BarChart3 },
+    { id: 'blog', label: 'إدارة المدونة', icon: FileText },
+    { id: 'content', label: 'إدارة المحتوى', icon: Edit3 },
+    { id: 'messages', label: 'الرسائل', icon: MessageSquare },
+    { id: 'settings', label: 'الإعدادات', icon: Settings }
   ];
 
   const renderOverview = () => (
     <div className="space-y-6">
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">
-                {language === 'ar' ? 'إجمالي المقالات' : 'Total Posts'}
-              </p>
+              <p className="text-sm font-medium text-gray-600">إجمالي المقالات</p>
               <p className="text-2xl font-bold text-gray-900">{posts.length}</p>
             </div>
             <div className="p-3 bg-blue-50 rounded-full">
@@ -300,13 +199,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">
-                {language === 'ar' ? 'إجمالي الصفحات' : 'Total Pages'}
-              </p>
-              <p className="text-2xl font-bold text-gray-900">{pages.length}</p>
+              <p className="text-sm font-medium text-gray-600">أقسام المحتوى</p>
+              <p className="text-2xl font-bold text-gray-900">{sections.length}</p>
             </div>
             <div className="p-3 bg-green-50 rounded-full">
-              <Globe className="h-6 w-6 text-green-600" />
+              <Edit3 className="h-6 w-6 text-green-600" />
             </div>
           </div>
         </div>
@@ -314,23 +211,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">
-                {language === 'ar' ? 'الملفات المرفوعة' : 'Media Files'}
-              </p>
-              <p className="text-2xl font-bold text-gray-900">{files.length}</p>
-            </div>
-            <div className="p-3 bg-purple-50 rounded-full">
-              <Image className="h-6 w-6 text-purple-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">
-                {language === 'ar' ? 'الرسائل الجديدة' : 'New Messages'}
-              </p>
+              <p className="text-sm font-medium text-gray-600">الرسائل الجديدة</p>
               <p className="text-2xl font-bold text-gray-900">
                 {messages.filter(m => m.status === 'new').length}
               </p>
@@ -345,30 +226,27 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       {/* Recent Activity */}
       <div className="bg-white rounded-lg shadow">
         <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {language === 'ar' ? 'النشاط الأخير' : 'Recent Activity'}
-          </h2>
+          <h2 className="text-lg font-semibold text-gray-900">النشاط الأخير</h2>
         </div>
         <div className="p-6">
           <div className="space-y-4">
             {posts.slice(0, 5).map((post) => (
-              <div key={post.id} className="flex items-center space-x-4 space-x-reverse">
-                <div className="p-2 bg-blue-50 rounded-lg">
-                  <FileText className="h-4 w-4 text-blue-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">{post.title}</p>
-                  <p className="text-xs text-gray-500">
-                    {new Date(post.created_at).toLocaleDateString(language === 'ar' ? 'ar' : 'en')}
-                  </p>
+              <div key={post.id} className="flex items-center justify-between">
+                <div className="flex items-center space-x-4 space-x-reverse">
+                  <div className="p-2 bg-blue-50 rounded-lg">
+                    <FileText className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{post.title}</p>
+                    <p className="text-xs text-gray-500">
+                      {new Date(post.created_at).toLocaleDateString('ar')}
+                    </p>
+                  </div>
                 </div>
                 <span className={`px-2 py-1 text-xs rounded-full ${
                   post.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
                 }`}>
-                  {post.status === 'published' ? 
-                    (language === 'ar' ? 'منشور' : 'Published') : 
-                    (language === 'ar' ? 'مسودة' : 'Draft')
-                  }
+                  {post.status === 'published' ? 'منشور' : 'مسودة'}
                 </span>
               </div>
             ))}
@@ -383,58 +261,48 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       {/* Create New Post */}
       <div className="bg-white rounded-lg shadow">
         <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {language === 'ar' ? 'إنشاء مقال جديد' : 'Create New Post'}
-          </h2>
+          <h2 className="text-lg font-semibold text-gray-900">إنشاء مقال جديد</h2>
         </div>
         <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'ar' ? 'العنوان' : 'Title'}
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">العنوان</label>
               <input
                 type="text"
                 value={newPost.title}
                 onChange={(e) => setNewPost({...newPost, title: e.target.value})}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder={language === 'ar' ? 'أدخل عنوان المقال' : 'Enter post title'}
+                placeholder="أدخل عنوان المقال"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'ar' ? 'الفئة' : 'Category'}
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">الفئة</label>
               <input
                 type="text"
                 value={newPost.category}
                 onChange={(e) => setNewPost({...newPost, category: e.target.value})}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder={language === 'ar' ? 'أدخل فئة المقال' : 'Enter post category'}
+                placeholder="أدخل فئة المقال"
               />
             </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'ar' ? 'الملخص' : 'Excerpt'}
-              </label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">الملخص</label>
               <textarea
                 value={newPost.excerpt}
                 onChange={(e) => setNewPost({...newPost, excerpt: e.target.value})}
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder={language === 'ar' ? 'أدخل ملخص المقال' : 'Enter post excerpt'}
+                placeholder="أدخل ملخص المقال"
               />
             </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'ar' ? 'المحتوى' : 'Content'}
-              </label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">المحتوى</label>
               <textarea
                 value={newPost.content}
                 onChange={(e) => setNewPost({...newPost, content: e.target.value})}
                 rows={8}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder={language === 'ar' ? 'أدخل محتوى المقال' : 'Enter post content'}
+                placeholder="أدخل محتوى المقال"
               />
             </div>
           </div>
@@ -447,7 +315,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
               disabled={loading}
               className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
             >
-              {language === 'ar' ? 'حفظ كمسودة' : 'Save as Draft'}
+              حفظ كمسودة
             </button>
             <button
               onClick={() => {
@@ -458,7 +326,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2 space-x-reverse"
             >
               {loading && <Loader className="h-4 w-4 animate-spin" />}
-              <span>{loading ? (language === 'ar' ? 'جاري الحفظ...' : 'Saving...') : (language === 'ar' ? 'نشر المقال' : 'Publish Post')}</span>
+              <span>نشر المقال</span>
             </button>
           </div>
         </div>
@@ -467,9 +335,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       {/* Posts List */}
       <div className="bg-white rounded-lg shadow">
         <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {language === 'ar' ? 'المقالات الموجودة' : 'Existing Posts'}
-          </h2>
+          <h2 className="text-lg font-semibold text-gray-900">المقالات الموجودة</h2>
         </div>
         <div className="p-6">
           <div className="space-y-4">
@@ -477,31 +343,26 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
               <div key={post.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                 <div>
                   <h3 className="font-medium text-gray-900">{post.title}</h3>
-                  <p className="text-sm text-gray-500">{post.category} • {post.author_name}</p>
+                  <p className="text-sm text-gray-500">{post.category}</p>
                   <p className="text-xs text-gray-400">
-                    {new Date(post.created_at).toLocaleDateString(language === 'ar' ? 'ar' : 'en')}
+                    {new Date(post.created_at).toLocaleDateString('ar')}
                   </p>
                 </div>
                 <div className="flex items-center space-x-2 space-x-reverse">
                   <span className={`px-2 py-1 text-xs rounded-full ${
                     post.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
                   }`}>
-                    {post.status === 'published' ? 
-                      (language === 'ar' ? 'منشور' : 'Published') : 
-                      (language === 'ar' ? 'مسودة' : 'Draft')
-                    }
+                    {post.status === 'published' ? 'منشور' : 'مسودة'}
                   </span>
                   <button
                     onClick={() => setEditingPost(post)}
                     className="text-blue-600 hover:text-blue-800 p-1"
-                    title={language === 'ar' ? 'تعديل' : 'Edit'}
                   >
                     <Edit3 className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => handleDeletePost(post.id)}
                     className="text-red-600 hover:text-red-800 p-1"
-                    title={language === 'ar' ? 'حذف' : 'Delete'}
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -516,14 +377,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       {editingPost && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-semibold mb-4">
-              {language === 'ar' ? 'تعديل المقال' : 'Edit Post'}
-            </h3>
+            <h3 className="text-lg font-semibold mb-4">تعديل المقال</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {language === 'ar' ? 'العنوان' : 'Title'}
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">العنوان</label>
                 <input
                   type="text"
                   value={editingPost.title}
@@ -532,9 +389,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {language === 'ar' ? 'المحتوى' : 'Content'}
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">المحتوى</label>
                 <textarea
                   value={editingPost.content}
                   onChange={(e) => setEditingPost({...editingPost, content: e.target.value})}
@@ -543,16 +398,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {language === 'ar' ? 'الحالة' : 'Status'}
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">الحالة</label>
                 <select
                   value={editingPost.status}
                   onChange={(e) => setEditingPost({...editingPost, status: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="draft">{language === 'ar' ? 'مسودة' : 'Draft'}</option>
-                  <option value="published">{language === 'ar' ? 'منشور' : 'Published'}</option>
+                  <option value="draft">مسودة</option>
+                  <option value="published">منشور</option>
                 </select>
               </div>
             </div>
@@ -561,7 +414,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 onClick={() => setEditingPost(null)}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                {language === 'ar' ? 'إلغاء' : 'Cancel'}
+                إلغاء
               </button>
               <button
                 onClick={() => handleUpdatePost(editingPost.id, editingPost)}
@@ -569,7 +422,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2 space-x-reverse"
               >
                 {loading && <Loader className="h-4 w-4 animate-spin" />}
-                <span>{loading ? (language === 'ar' ? 'جاري الحفظ...' : 'Saving...') : (language === 'ar' ? 'حفظ' : 'Save')}</span>
+                <span>حفظ</span>
               </button>
             </div>
           </div>
@@ -582,30 +435,39 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     <div className="space-y-6">
       <div className="bg-white rounded-lg shadow">
         <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {language === 'ar' ? 'إدارة أقسام المحتوى' : 'Content Sections Management'}
-          </h2>
+          <h2 className="text-lg font-semibold text-gray-900">إدارة أقسام المحتوى</h2>
         </div>
         <div className="p-6">
           <div className="space-y-4">
-            {sections.map((section) => (
-              <div key={section.id} className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-medium text-gray-900">{section.section_name}</h3>
-                  <button
-                    onClick={() => setEditingSection(section)}
-                    className="text-blue-600 hover:text-blue-800 p-1"
-                    title={language === 'ar' ? 'تعديل' : 'Edit'}
-                  >
-                    <Edit3 className="h-4 w-4" />
-                  </button>
+            {[
+              { key: 'hero_title', name: 'عنوان الصفحة الرئيسية', default: 'فورنسيك برو - خبرة موثوقة في الحماية المدنية والطب الشرعي' },
+              { key: 'hero_subtitle', name: 'وصف الصفحة الرئيسية', default: 'مع أكثر من 20 عاماً من الخبرة، نقدم تحليلاً شرعياً شاملاً وخدمات الحماية المدنية' },
+              { key: 'about_title', name: 'عنوان صفحة من نحن', default: 'حول فورنسيك برو' },
+              { key: 'services_title', name: 'عنوان صفحة الخدمات', default: 'خدماتنا المتخصصة' },
+              { key: 'contact_title', name: 'عنوان صفحة الاتصال', default: 'اتصل بنا' }
+            ].map((item) => {
+              const section = sections.find(s => s.section_key === item.key);
+              return (
+                <div key={item.key} className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-medium text-gray-900">{item.name}</h3>
+                    <button
+                      onClick={() => setEditingSection({ 
+                        section_key: item.key, 
+                        section_name: item.name,
+                        content: section?.content || item.default 
+                      })}
+                      className="text-blue-600 hover:text-blue-800 p-1"
+                    >
+                      <Edit3 className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <div className="text-sm text-gray-800 bg-gray-50 p-3 rounded">
+                    {section?.content || item.default}
+                  </div>
                 </div>
-                <p className="text-sm text-gray-600 mb-2">Key: {section.section_key}</p>
-                <div className="text-sm text-gray-800 bg-gray-50 p-3 rounded">
-                  {section.content.substring(0, 200)}...
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
@@ -614,26 +476,19 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       {editingSection && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4">
-            <h3 className="text-lg font-semibold mb-4">
-              {language === 'ar' ? 'تعديل القسم' : 'Edit Section'}
-            </h3>
+            <h3 className="text-lg font-semibold mb-4">تعديل القسم</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {language === 'ar' ? 'اسم القسم' : 'Section Name'}
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">اسم القسم</label>
                 <input
                   type="text"
                   value={editingSection.section_name}
-                  onChange={(e) => setEditingSection({...editingSection, section_name: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   disabled
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {language === 'ar' ? 'المحتوى' : 'Content'}
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">المحتوى</label>
                 <textarea
                   value={editingSection.content}
                   onChange={(e) => setEditingSection({...editingSection, content: e.target.value})}
@@ -647,7 +502,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 onClick={() => setEditingSection(null)}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                {language === 'ar' ? 'إلغاء' : 'Cancel'}
+                إلغاء
               </button>
               <button
                 onClick={() => handleUpdateSection(editingSection.section_key, editingSection.content)}
@@ -655,7 +510,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2 space-x-reverse"
               >
                 {loading && <Loader className="h-4 w-4 animate-spin" />}
-                <span>{loading ? (language === 'ar' ? 'جاري الحفظ...' : 'Saving...') : (language === 'ar' ? 'حفظ' : 'Save')}</span>
+                <span>حفظ</span>
               </button>
             </div>
           </div>
@@ -664,74 +519,52 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     </div>
   );
 
-  const renderMediaLibrary = () => (
+  const renderMessages = () => (
     <div className="space-y-6">
-      {/* Upload Section */}
       <div className="bg-white rounded-lg shadow">
         <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {language === 'ar' ? 'رفع ملف جديد' : 'Upload New File'}
-          </h2>
+          <h2 className="text-lg font-semibold text-gray-900">رسائل الاتصال</h2>
         </div>
         <div className="p-6">
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-            <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 mb-4">
-              {language === 'ar' ? 'اسحب الملفات هنا أو اضغط للاختيار' : 'Drag files here or click to select'}
-            </p>
-            <label className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 cursor-pointer">
-              {language === 'ar' ? 'اختيار ملفات' : 'Choose Files'}
-              <input
-                type="file"
-                className="hidden"
-                multiple
-                onChange={(e) => {
-                  const files = Array.from(e.target.files || []);
-                  files.forEach(handleFileUpload);
-                }}
-              />
-            </label>
-          </div>
-        </div>
-      </div>
-
-      {/* Files Grid */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {language === 'ar' ? 'الملفات المرفوعة' : 'Uploaded Files'}
-          </h2>
-        </div>
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {files.map((file) => (
-              <div key={file.id} className="border border-gray-200 rounded-lg p-4">
-                {file.file_type === 'image' ? (
-                  <img src={file.url} alt={file.alt_text || file.filename} className="w-full h-32 object-cover rounded mb-2" />
-                ) : (
-                  <div className="w-full h-32 bg-gray-100 rounded mb-2 flex items-center justify-center">
-                    <FileText className="h-8 w-8 text-gray-400" />
+          <div className="space-y-4">
+            {messages.map((message) => (
+              <div key={message.id} className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2 space-x-reverse">
+                    <h3 className="font-medium text-gray-900">{message.name}</h3>
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      message.status === 'new' ? 'bg-blue-100 text-blue-800' :
+                      message.status === 'read' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-green-100 text-green-800'
+                    }`}>
+                      {message.status === 'new' ? 'جديد' : 
+                       message.status === 'read' ? 'مقروء' : 'تم الرد'}
+                    </span>
                   </div>
-                )}
-                <p className="text-sm font-medium text-gray-900 truncate">{file.original_name}</p>
-                <p className="text-xs text-gray-500">{(file.file_size / 1024).toFixed(1)} KB</p>
-                <div className="mt-2 flex justify-between">
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(file.url);
-                      showMessage(language === 'ar' ? 'تم نسخ الرابط' : 'URL copied');
-                    }}
-                    className="text-blue-600 hover:text-blue-800 text-xs"
-                  >
-                    {language === 'ar' ? 'نسخ الرابط' : 'Copy URL'}
-                  </button>
-                  <button
-                    onClick={() => deleteFile(file.id)}
-                    className="text-red-600 hover:text-red-800"
-                    title={language === 'ar' ? 'حذف' : 'Delete'}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </button>
+                  <span className="text-sm text-gray-600">{message.email}</span>
+                </div>
+                <p className="text-sm font-medium text-gray-800 mb-2">{message.subject}</p>
+                <p className="text-sm text-gray-600 mb-3">{message.message}</p>
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <span>{new Date(message.created_at).toLocaleDateString('ar')}</span>
+                  <div className="flex space-x-2 space-x-reverse">
+                    <button
+                      onClick={async () => {
+                        try {
+                          await DatabaseService.updateContactMessageStatus(message.id, 'read');
+                          setMessages(prev => prev.map(m => 
+                            m.id === message.id ? {...m, status: 'read'} : m
+                          ));
+                          showMessage('تم تحديد الرسالة كمقروءة');
+                        } catch (error) {
+                          showMessage('حدث خطأ', 'error');
+                        }
+                      }}
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      تحديد كمقروء
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -745,271 +578,29 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     <div className="space-y-6">
       <div className="bg-white rounded-lg shadow">
         <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {language === 'ar' ? 'إعدادات الموقع' : 'Site Settings'}
-          </h2>
+          <h2 className="text-lg font-semibold text-gray-900">إعدادات الموقع</h2>
         </div>
         <div className="p-6">
           <div className="space-y-6">
-            {/* Site Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'ar' ? 'اسم الموقع' : 'Site Name'}
-              </label>
-              <div className="flex space-x-2 space-x-reverse">
-                <input
-                  type="text"
-                  defaultValue={getSetting('site_name')}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  onBlur={(e) => handleSaveSetting('site_name', e.target.value)}
-                />
-              </div>
-            </div>
-
-            {/* Site Description */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'ar' ? 'وصف الموقع' : 'Site Description'}
-              </label>
-              <textarea
-                defaultValue={getSetting('site_description')}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onBlur={(e) => handleSaveSetting('site_description', e.target.value)}
-              />
-            </div>
-
-            {/* Contact Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
+            {[
+              { key: 'site_name', label: 'اسم الموقع', default: 'فورنسيك برو' },
+              { key: 'site_description', label: 'وصف الموقع', default: 'شركة استشارات الطب الشرعي والحماية المدنية' },
+              { key: 'contact_email', label: 'البريد الإلكتروني', default: 'info@forensicpro.com' },
+              { key: 'contact_phone', label: 'رقم الهاتف', default: '+1 (555) 123-4567' },
+              { key: 'contact_address', label: 'العنوان', default: '123 Professional Drive, Suite 400' }
+            ].map((setting) => (
+              <div key={setting.key}>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {language === 'ar' ? 'البريد الإلكتروني' : 'Email'}
+                  {setting.label}
                 </label>
-                <input
-                  type="email"
-                  defaultValue={getSetting('contact_email')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  onBlur={(e) => handleSaveSetting('contact_email', e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {language === 'ar' ? 'رقم الهاتف' : 'Phone'}
-                </label>
-                <input
-                  type="tel"
-                  defaultValue={getSetting('contact_phone')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  onBlur={(e) => handleSaveSetting('contact_phone', e.target.value)}
-                />
-              </div>
-            </div>
-
-            {/* Address */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'ar' ? 'العنوان' : 'Address'}
-              </label>
-              <textarea
-                defaultValue={getSetting('contact_address')}
-                rows={2}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onBlur={(e) => handleSaveSetting('contact_address', e.target.value)}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderMessages = () => (
-    <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {language === 'ar' ? 'رسائل الاتصال' : 'Contact Messages'}
-          </h2>
-        </div>
-        <div className="p-6">
-          <div className="space-y-4">
-            {messages.map((message) => (
-              <div key={message.id} className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-2 space-x-reverse">
-                    <h3 className="font-medium text-gray-900">{message.name}</h3>
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      message.status === 'new' ? 'bg-blue-100 text-blue-800' :
-                      message.status === 'read' ? 'bg-yellow-100 text-yellow-800' :
-                      message.status === 'replied' ? 'bg-green-100 text-green-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {message.status === 'new' ? (language === 'ar' ? 'جديد' : 'New') :
-                       message.status === 'read' ? (language === 'ar' ? 'مقروء' : 'Read') :
-                       message.status === 'replied' ? (language === 'ar' ? 'تم الرد' : 'Replied') :
-                       (language === 'ar' ? 'مؤرشف' : 'Archived')}
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-2 space-x-reverse">
-                    <Mail className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm text-gray-600">{message.email}</span>
-                  </div>
-                </div>
-                <p className="text-sm font-medium text-gray-800 mb-2">{message.subject}</p>
-                <p className="text-sm text-gray-600 mb-3">{message.message}</p>
-                <div className="flex items-center justify-between text-xs text-gray-500">
-                  <span>{new Date(message.created_at).toLocaleDateString(language === 'ar' ? 'ar' : 'en')}</span>
-                  <div className="flex space-x-2 space-x-reverse">
-                    <button
-                      onClick={() => updateMessageStatus(message.id, 'read')}
-                      className="text-blue-600 hover:text-blue-800"
-                    >
-                      {language === 'ar' ? 'تحديد كمقروء' : 'Mark as Read'}
-                    </button>
-                    <button
-                      onClick={() => updateMessageStatus(message.id, 'replied')}
-                      className="text-green-600 hover:text-green-800"
-                    >
-                      {language === 'ar' ? 'تحديد كمجاب' : 'Mark as Replied'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderChatbotManagement = () => (
-    <div className="space-y-6">
-      {/* Create New Response */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {language === 'ar' ? 'إضافة رد جديد' : 'Add New Response'}
-          </h2>
-        </div>
-        <div className="p-6">
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'ar' ? 'الكلمات المفتاحية' : 'Trigger Keywords'}
-              </label>
-              {newResponse.trigger_keywords.map((keyword, index) => (
-                <div key={index} className="flex space-x-2 space-x-reverse mb-2">
+                <div className="flex space-x-2 space-x-reverse">
                   <input
                     type="text"
-                    value={keyword}
-                    onChange={(e) => {
-                      const newKeywords = [...newResponse.trigger_keywords];
-                      newKeywords[index] = e.target.value;
-                      setNewResponse({...newResponse, trigger_keywords: newKeywords});
-                    }}
+                    defaultValue={settings[setting.key] || setting.default}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder={language === 'ar' ? 'أدخل كلمة مفتاحية' : 'Enter keyword'}
+                    onBlur={(e) => handleSaveSetting(setting.key, e.target.value)}
                   />
-                  <button
-                    onClick={() => {
-                      const newKeywords = newResponse.trigger_keywords.filter((_, i) => i !== index);
-                      setNewResponse({...newResponse, trigger_keywords: newKeywords});
-                    }}
-                    className="text-red-600 hover:text-red-800 p-2"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
                 </div>
-              ))}
-              <button
-                onClick={() => setNewResponse({...newResponse, trigger_keywords: [...newResponse.trigger_keywords, '']})}
-                className="text-blue-600 hover:text-blue-800 text-sm flex items-center space-x-1 space-x-reverse"
-              >
-                <Plus className="h-4 w-4" />
-                <span>{language === 'ar' ? 'إضافة كلمة مفتاحية' : 'Add Keyword'}</span>
-              </button>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'ar' ? 'نص الرد' : 'Response Text'}
-              </label>
-              <textarea
-                value={newResponse.response_text}
-                onChange={(e) => setNewResponse({...newResponse, response_text: e.target.value})}
-                rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder={language === 'ar' ? 'أدخل نص الرد' : 'Enter response text'}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'ar' ? 'الأولوية' : 'Priority'}
-              </label>
-              <input
-                type="number"
-                value={newResponse.priority}
-                onChange={(e) => setNewResponse({...newResponse, priority: parseInt(e.target.value) || 0})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                min="0"
-              />
-            </div>
-          </div>
-          <div className="mt-6 flex justify-end">
-            <button
-              onClick={handleCreateResponse}
-              disabled={loading}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2 space-x-reverse"
-            >
-              {loading && <Loader className="h-4 w-4 animate-spin" />}
-              <span>{loading ? (language === 'ar' ? 'جاري الحفظ...' : 'Saving...') : (language === 'ar' ? 'إضافة رد' : 'Add Response')}</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Responses List */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {language === 'ar' ? 'الردود الموجودة' : 'Existing Responses'}
-          </h2>
-        </div>
-        <div className="p-6">
-          <div className="space-y-4">
-            {responses.map((response) => (
-              <div key={response.id} className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-2 space-x-reverse">
-                    <span className="text-sm font-medium text-gray-900">
-                      {language === 'ar' ? 'أولوية:' : 'Priority:'} {response.priority}
-                    </span>
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      response.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {response.is_active ? (language === 'ar' ? 'نشط' : 'Active') : (language === 'ar' ? 'غير نشط' : 'Inactive')}
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-2 space-x-reverse">
-                    <button
-                      onClick={() => setEditingResponse(response)}
-                      className="text-blue-600 hover:text-blue-800 p-1"
-                      title={language === 'ar' ? 'تعديل' : 'Edit'}
-                    >
-                      <Edit3 className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => deleteResponse(response.id)}
-                      className="text-red-600 hover:text-red-800 p-1"
-                      title={language === 'ar' ? 'حذف' : 'Delete'}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-600 mb-2">
-                  <strong>{language === 'ar' ? 'الكلمات المفتاحية:' : 'Keywords:'}</strong> {response.trigger_keywords.join(', ')}
-                </p>
-                <p className="text-sm text-gray-800">{response.response_text}</p>
               </div>
             ))}
           </div>
@@ -1019,7 +610,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+    <div className="min-h-screen bg-gray-50" dir="rtl">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1027,29 +618,17 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             <div className="flex items-center space-x-4 space-x-reverse">
               <Shield className="h-8 w-8 text-blue-600" />
               <div>
-                <h1 className="text-xl font-bold text-gray-900">
-                  {language === 'ar' ? 'لوحة التحكم الإدارية' : 'Admin Dashboard'}
-                </h1>
-                <p className="text-sm text-gray-600">
-                  {language === 'ar' ? 'إدارة شاملة لموقع فورنسيك برو' : 'ForensicPro Website Management'}
-                </p>
+                <h1 className="text-xl font-bold text-gray-900">لوحة التحكم الإدارية</h1>
+                <p className="text-sm text-gray-600">إدارة موقع فورنسيك برو</p>
               </div>
             </div>
-            <div className="flex items-center space-x-4 space-x-reverse">
-              <div className="flex items-center space-x-2 space-x-reverse">
-                <Globe className="h-4 w-4 text-gray-400" />
-                <span className="text-sm text-gray-600">
-                  {language === 'ar' ? 'العربية' : 'English'}
-                </span>
-              </div>
-              <button
-                onClick={onLogout}
-                className="flex items-center space-x-2 space-x-reverse text-gray-600 hover:text-gray-900"
-              >
-                <LogOut className="h-4 w-4" />
-                <span className="text-sm">{language === 'ar' ? 'تسجيل الخروج' : 'Logout'}</span>
-              </button>
-            </div>
+            <button
+              onClick={onLogout}
+              className="flex items-center space-x-2 space-x-reverse text-gray-600 hover:text-gray-900"
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="text-sm">تسجيل الخروج</span>
+            </button>
           </div>
         </div>
       </header>
@@ -1101,28 +680,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             )}
 
             {activeTab === 'overview' && renderOverview()}
-            {activeTab === 'users' && <UserManagement />}
             {activeTab === 'blog' && renderBlogManagement()}
             {activeTab === 'content' && renderContentManagement()}
-            {activeTab === 'media' && renderMediaLibrary()}
             {activeTab === 'messages' && renderMessages()}
-            {activeTab === 'chatbot' && renderChatbotManagement()}
-            {activeTab === 'navigation' && <NavigationManagement />}
-            {activeTab === 'backup' && <BackupRestore />}
             {activeTab === 'settings' && renderSettings()}
-            
-            {/* Placeholder for other tabs */}
-            {!['overview', 'users', 'blog', 'content', 'media', 'messages', 'chatbot', 'navigation', 'backup', 'settings'].includes(activeTab) && (
-              <div className="bg-white rounded-lg shadow p-8 text-center">
-                <Activity className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  {language === 'ar' ? 'قيد التطوير' : 'Under Development'}
-                </h3>
-                <p className="text-gray-600">
-                  {language === 'ar' ? 'هذا القسم قيد التطوير وسيكون متاحاً قريباً' : 'This section is under development and will be available soon'}
-                </p>
-              </div>
-            )}
           </div>
         </div>
       </div>
