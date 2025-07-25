@@ -56,9 +56,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         DatabaseService.getTestimonials(),
         DatabaseService.getStats(),
         DatabaseService.getTeamMembers(),
-        servicePagesData,
-        DatabaseService.getAllServicePagesContent(),
-        DatabaseService.getHomepageContent()
+        DatabaseService.getContentSection('about_content')
       ]);
       
       const [servicesData2, postsData2, certsData, teamData2, messagesData, aboutData2] = await Promise.all([
@@ -83,17 +81,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
           setAboutContent({});
         }
       }
-      
-      // Load homepage content
-      const homepageObj: any = {};
-      homepageData.forEach((section: any) => {
-        try {
-          homepageObj[section.section_key] = JSON.parse(section.content);
-        } catch {
-          homepageObj[section.section_key] = { content: section.content };
-        }
-      });
-      setHomepageContent(homepageObj);
     } catch (error) {
       console.error('Error loading data:', error);
       showMessage('خطأ في تحميل البيانات', 'error');
@@ -127,6 +114,529 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       showMessage('خطأ في رفع الصورة', 'error');
       return null;
     }
+  };
+
+  const updateHomepageContent = async (sectionKey: string, content: any) => {
+    try {
+      setSavingHomepage(true);
+      await DatabaseService.updateHomepageSection(sectionKey, content);
+      setHomepageContent(prev => ({
+        ...prev,
+        [sectionKey]: content
+      }));
+    } catch (error) {
+      console.error('Error updating homepage content:', error);
+      alert(language === 'ar' ? 'حدث خطأ في حفظ التغييرات' : 'Error saving changes');
+    } finally {
+      setSavingHomepage(false);
+    }
+  };
+
+  const renderHomepageTab = () => {
+    const heroContent = homepageContent['homepage_hero'] || {};
+    const certificationsContent = homepageContent['homepage_certifications'] || {};
+    const servicesContent = homepageContent['homepage_services'] || {};
+    const testimonialsContent = homepageContent['homepage_testimonials'] || {};
+    const ctaContent = homepageContent['homepage_cta_final'] || {};
+
+    return (
+      <div className="space-y-8">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-gray-900">
+            {language === 'ar' ? 'إدارة الصفحة الرئيسية' : 'Homepage Management'}
+          </h2>
+          {savingHomepage && (
+            <div className="flex items-center text-blue-600">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+              {language === 'ar' ? 'جاري الحفظ...' : 'Saving...'}
+            </div>
+          )}
+        </div>
+
+        {/* Hero Section */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h3 className="text-xl font-semibold mb-4 text-blue-800">
+            {language === 'ar' ? 'القسم الرئيسي (Hero Section)' : 'Hero Section'}
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'ar' ? 'العنوان الرئيسي (عربي)' : 'Main Title (Arabic)'}
+              </label>
+              <input
+                type="text"
+                value={heroContent.title_ar || ''}
+                onChange={(e) => {
+                  const newContent = { ...heroContent, title_ar: e.target.value };
+                  updateHomepageContent('homepage_hero', newContent);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'ar' ? 'العنوان الرئيسي (إنجليزي)' : 'Main Title (English)'}
+              </label>
+              <input
+                type="text"
+                value={heroContent.title_en || ''}
+                onChange={(e) => {
+                  const newContent = { ...heroContent, title_en: e.target.value };
+                  updateHomepageContent('homepage_hero', newContent);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'ar' ? 'الوصف (عربي)' : 'Description (Arabic)'}
+              </label>
+              <textarea
+                value={heroContent.subtitle_ar || ''}
+                onChange={(e) => {
+                  const newContent = { ...heroContent, subtitle_ar: e.target.value };
+                  updateHomepageContent('homepage_hero', newContent);
+                }}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'ar' ? 'الوصف (إنجليزي)' : 'Description (English)'}
+              </label>
+              <textarea
+                value={heroContent.subtitle_en || ''}
+                onChange={(e) => {
+                  const newContent = { ...heroContent, subtitle_en: e.target.value };
+                  updateHomepageContent('homepage_hero', newContent);
+                }}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+          
+          {/* CTA Buttons */}
+          <div className="mt-6">
+            <h4 className="text-lg font-medium mb-4">
+              {language === 'ar' ? 'أزرار الدعوة للعمل' : 'Call-to-Action Buttons'}
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {language === 'ar' ? 'الزر الأول (عربي)' : 'Button 1 (Arabic)'}
+                </label>
+                <input
+                  type="text"
+                  value={heroContent.cta1_text_ar || ''}
+                  onChange={(e) => {
+                    const newContent = { ...heroContent, cta1_text_ar: e.target.value };
+                    updateHomepageContent('homepage_hero', newContent);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {language === 'ar' ? 'الزر الأول (إنجليزي)' : 'Button 1 (English)'}
+                </label>
+                <input
+                  type="text"
+                  value={heroContent.cta1_text_en || ''}
+                  onChange={(e) => {
+                    const newContent = { ...heroContent, cta1_text_en: e.target.value };
+                    updateHomepageContent('homepage_hero', newContent);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {language === 'ar' ? 'الزر الثاني (عربي)' : 'Button 2 (Arabic)'}
+                </label>
+                <input
+                  type="text"
+                  value={heroContent.cta2_text_ar || ''}
+                  onChange={(e) => {
+                    const newContent = { ...heroContent, cta2_text_ar: e.target.value };
+                    updateHomepageContent('homepage_hero', newContent);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {language === 'ar' ? 'الزر الثاني (إنجليزي)' : 'Button 2 (English)'}
+                </label>
+                <input
+                  type="text"
+                  value={heroContent.cta2_text_en || ''}
+                  onChange={(e) => {
+                    const newContent = { ...heroContent, cta2_text_en: e.target.value };
+                    updateHomepageContent('homepage_hero', newContent);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {language === 'ar' ? 'الزر الثالث (عربي)' : 'Button 3 (Arabic)'}
+                </label>
+                <input
+                  type="text"
+                  value={heroContent.cta3_text_ar || ''}
+                  onChange={(e) => {
+                    const newContent = { ...heroContent, cta3_text_ar: e.target.value };
+                    updateHomepageContent('homepage_hero', newContent);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {language === 'ar' ? 'الزر الثالث (إنجليزي)' : 'Button 3 (English)'}
+                </label>
+                <input
+                  type="text"
+                  value={heroContent.cta3_text_en || ''}
+                  onChange={(e) => {
+                    const newContent = { ...heroContent, cta3_text_en: e.target.value };
+                    updateHomepageContent('homepage_hero', newContent);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Certifications Section */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h3 className="text-xl font-semibold mb-4 text-blue-800">
+            {language === 'ar' ? 'قسم الشهادات المهنية' : 'Professional Certifications Section'}
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'ar' ? 'العنوان (عربي)' : 'Title (Arabic)'}
+              </label>
+              <input
+                type="text"
+                value={certificationsContent.title_ar || ''}
+                onChange={(e) => {
+                  const newContent = { ...certificationsContent, title_ar: e.target.value };
+                  updateHomepageContent('homepage_certifications', newContent);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'ar' ? 'العنوان (إنجليزي)' : 'Title (English)'}
+              </label>
+              <input
+                type="text"
+                value={certificationsContent.title_en || ''}
+                onChange={(e) => {
+                  const newContent = { ...certificationsContent, title_en: e.target.value };
+                  updateHomepageContent('homepage_certifications', newContent);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'ar' ? 'الوصف (عربي)' : 'Description (Arabic)'}
+              </label>
+              <textarea
+                value={certificationsContent.subtitle_ar || ''}
+                onChange={(e) => {
+                  const newContent = { ...certificationsContent, subtitle_ar: e.target.value };
+                  updateHomepageContent('homepage_certifications', newContent);
+                }}
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'ar' ? 'الوصف (إنجليزي)' : 'Description (English)'}
+              </label>
+              <textarea
+                value={certificationsContent.subtitle_en || ''}
+                onChange={(e) => {
+                  const newContent = { ...certificationsContent, subtitle_en: e.target.value };
+                  updateHomepageContent('homepage_certifications', newContent);
+                }}
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Services Section */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h3 className="text-xl font-semibold mb-4 text-blue-800">
+            {language === 'ar' ? 'قسم الخدمات الأساسية' : 'Core Services Section'}
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'ar' ? 'العنوان (عربي)' : 'Title (Arabic)'}
+              </label>
+              <input
+                type="text"
+                value={servicesContent.title_ar || ''}
+                onChange={(e) => {
+                  const newContent = { ...servicesContent, title_ar: e.target.value };
+                  updateHomepageContent('homepage_services', newContent);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'ar' ? 'العنوان (إنجليزي)' : 'Title (English)'}
+              </label>
+              <input
+                type="text"
+                value={servicesContent.title_en || ''}
+                onChange={(e) => {
+                  const newContent = { ...servicesContent, title_en: e.target.value };
+                  updateHomepageContent('homepage_services', newContent);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'ar' ? 'الوصف (عربي)' : 'Description (Arabic)'}
+              </label>
+              <textarea
+                value={servicesContent.subtitle_ar || ''}
+                onChange={(e) => {
+                  const newContent = { ...servicesContent, subtitle_ar: e.target.value };
+                  updateHomepageContent('homepage_services', newContent);
+                }}
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'ar' ? 'الوصف (إنجليزي)' : 'Description (English)'}
+              </label>
+              <textarea
+                value={servicesContent.subtitle_en || ''}
+                onChange={(e) => {
+                  const newContent = { ...servicesContent, subtitle_en: e.target.value };
+                  updateHomepageContent('homepage_services', newContent);
+                }}
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Testimonials Section */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h3 className="text-xl font-semibold mb-4 text-blue-800">
+            {language === 'ar' ? 'قسم شهادات العملاء' : 'Client Testimonials Section'}
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'ar' ? 'العنوان (عربي)' : 'Title (Arabic)'}
+              </label>
+              <input
+                type="text"
+                value={testimonialsContent.title_ar || ''}
+                onChange={(e) => {
+                  const newContent = { ...testimonialsContent, title_ar: e.target.value };
+                  updateHomepageContent('homepage_testimonials', newContent);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'ar' ? 'العنوان (إنجليزي)' : 'Title (English)'}
+              </label>
+              <input
+                type="text"
+                value={testimonialsContent.title_en || ''}
+                onChange={(e) => {
+                  const newContent = { ...testimonialsContent, title_en: e.target.value };
+                  updateHomepageContent('homepage_testimonials', newContent);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'ar' ? 'الوصف (عربي)' : 'Description (Arabic)'}
+              </label>
+              <textarea
+                value={testimonialsContent.subtitle_ar || ''}
+                onChange={(e) => {
+                  const newContent = { ...testimonialsContent, subtitle_ar: e.target.value };
+                  updateHomepageContent('homepage_testimonials', newContent);
+                }}
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'ar' ? 'الوصف (إنجليزي)' : 'Description (English)'}
+              </label>
+              <textarea
+                value={testimonialsContent.subtitle_en || ''}
+                onChange={(e) => {
+                  const newContent = { ...testimonialsContent, subtitle_en: e.target.value };
+                  updateHomepageContent('homepage_testimonials', newContent);
+                }}
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* CTA Final Section */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h3 className="text-xl font-semibold mb-4 text-blue-800">
+            {language === 'ar' ? 'قسم الدعوة النهائية للعمل' : 'Final Call-to-Action Section'}
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'ar' ? 'العنوان (عربي)' : 'Title (Arabic)'}
+              </label>
+              <input
+                type="text"
+                value={ctaContent.title_ar || ''}
+                onChange={(e) => {
+                  const newContent = { ...ctaContent, title_ar: e.target.value };
+                  updateHomepageContent('homepage_cta_final', newContent);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'ar' ? 'العنوان (إنجليزي)' : 'Title (English)'}
+              </label>
+              <input
+                type="text"
+                value={ctaContent.title_en || ''}
+                onChange={(e) => {
+                  const newContent = { ...ctaContent, title_en: e.target.value };
+                  updateHomepageContent('homepage_cta_final', newContent);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'ar' ? 'الوصف (عربي)' : 'Description (Arabic)'}
+              </label>
+              <textarea
+                value={ctaContent.subtitle_ar || ''}
+                onChange={(e) => {
+                  const newContent = { ...ctaContent, subtitle_ar: e.target.value };
+                  updateHomepageContent('homepage_cta_final', newContent);
+                }}
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'ar' ? 'الوصف (إنجليزي)' : 'Description (English)'}
+              </label>
+              <textarea
+                value={ctaContent.subtitle_en || ''}
+                onChange={(e) => {
+                  const newContent = { ...ctaContent, subtitle_en: e.target.value };
+                  updateHomepageContent('homepage_cta_final', newContent);
+                }}
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+          
+          {/* CTA Buttons */}
+          <div className="mt-4">
+            <h4 className="text-lg font-medium mb-4">
+              {language === 'ar' ? 'أزرار الدعوة للعمل' : 'Call-to-Action Buttons'}
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {language === 'ar' ? 'الزر الأول (عربي)' : 'Button 1 (Arabic)'}
+                </label>
+                <input
+                  type="text"
+                  value={ctaContent.cta1_text_ar || ''}
+                  onChange={(e) => {
+                    const newContent = { ...ctaContent, cta1_text_ar: e.target.value };
+                    updateHomepageContent('homepage_cta_final', newContent);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {language === 'ar' ? 'الزر الأول (إنجليزي)' : 'Button 1 (English)'}
+                </label>
+                <input
+                  type="text"
+                  value={ctaContent.cta1_text_en || ''}
+                  onChange={(e) => {
+                    const newContent = { ...ctaContent, cta1_text_en: e.target.value };
+                    updateHomepageContent('homepage_cta_final', newContent);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {language === 'ar' ? 'الزر الثاني (عربي)' : 'Button 2 (Arabic)'}
+                </label>
+                <input
+                  type="text"
+                  value={ctaContent.cta2_text_ar || ''}
+                  onChange={(e) => {
+                    const newContent = { ...ctaContent, cta2_text_ar: e.target.value };
+                    updateHomepageContent('homepage_cta_final', newContent);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {language === 'ar' ? 'الزر الثاني (إنجليزي)' : 'Button 2 (English)'}
+                </label>
+                <input
+                  type="text"
+                  value={ctaContent.cta2_text_en || ''}
+                  onChange={(e) => {
+                    const newContent = { ...ctaContent, cta2_text_en: e.target.value };
+                    updateHomepageContent('homepage_cta_final', newContent);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   // Services Management
