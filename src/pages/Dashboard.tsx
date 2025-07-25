@@ -547,13 +547,18 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 <button
                   onClick={() => setEditingPost(null)}
                   className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  disabled={loading}
                 >
                   إلغاء
                 </button>
                 <button
                   onClick={savePost}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  disabled={loading}
                 >
+                  {loading && (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  )}
                   حفظ
                 </button>
               </div>
@@ -1007,17 +1012,74 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
   const savePost = async () => {
     try {
+      setLoading(true);
+      
+      // التحقق من البيانات المطلوبة
+      if (!editingPost.title || !editingPost.content || !editingPost.author_name || !editingPost.category) {
+        showMessage('يرجى ملء جميع الحقول المطلوبة', 'error');
+        setLoading(false);
+        return;
+      }
+
+      // إنشاء slug تلقائياً إذا لم يكن موجوداً
+      if (!editingPost.slug) {
+        editingPost.slug = editingPost.title
+          .toLowerCase()
+          .replace(/[^a-z0-9\u0600-\u06FF\s]/g, '')
+          .replace(/\s+/g, '-')
+          .substring(0, 50);
+      }
+
+      // تحديد وقت النشر إذا كانت الحالة منشور
+      if (editingPost.status === 'published' && !editingPost.published_at) {
+        editingPost.published_at = new Date().toISOString();
+      }
+
+      let savedPost;
       if (editingPost.id) {
-        await DatabaseService.updateBlogPost(editingPost.id, editingPost);
+        savedPost = await DatabaseService.updateBlogPost(editingPost.id, {
+          title: editingPost.title,
+          slug: editingPost.slug,
+          excerpt: editingPost.excerpt || '',
+          content: editingPost.content,
+          featured_image: editingPost.featured_image || '',
+          author_name: editingPost.author_name,
+          category: editingPost.category,
+          tags: editingPost.tags || [],
+          status: editingPost.status || 'draft',
+          read_time: editingPost.read_time || 5,
+          meta_description: editingPost.meta_description || '',
+          seo_keywords: editingPost.seo_keywords || [],
+          published_at: editingPost.published_at
+        });
         showMessage('تم تحديث المقال بنجاح');
       } else {
-        await DatabaseService.createBlogPost(editingPost);
+        savedPost = await DatabaseService.createBlogPost({
+          title: editingPost.title,
+          slug: editingPost.slug,
+          excerpt: editingPost.excerpt || '',
+          content: editingPost.content,
+          featured_image: editingPost.featured_image || '',
+          author_name: editingPost.author_name,
+          category: editingPost.category,
+          tags: editingPost.tags || [],
+          status: editingPost.status || 'draft',
+          read_time: editingPost.read_time || 5,
+          views: 0,
+          meta_description: editingPost.meta_description || '',
+          seo_keywords: editingPost.seo_keywords || [],
+          published_at: editingPost.published_at
+        });
         showMessage('تم إضافة المقال بنجاح');
       }
+      
       setEditingPost(null);
-      loadAllData();
+      await loadAllData(); // إعادة تحميل البيانات
     } catch (error) {
+      console.error('Error saving post:', error);
       showMessage('خطأ في حفظ المقال', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
