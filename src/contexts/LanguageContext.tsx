@@ -20,7 +20,7 @@ const translations = {
     'nav.explosivesAnalysis': 'Explosives Analysis',
 
     // Home Page
-    'home.hero.title': 'aabdelzaher.com - Specialized Technical and Legal Consulting',
+    'home.hero.title': 'aabdelzaher - Specialized Technical and Legal Consulting',
     'home.hero.subtitle': 'We specialize in providing technical and legal consulting services in civil protection, forensic evidence, fire and explosives control, with over 20 years of professional experience.',
     'home.cta.consultation': 'Book Consultation',
     'home.cta.contact': 'Contact Us',
@@ -35,7 +35,7 @@ const translations = {
     'home.cta.final.subtitle': 'Contact us today for specialized technical consultation and discover how our expertise can support your case or project.',
 
     // About Page
-    'about.title': 'About aabdelzaher.com',
+    'about.title': 'About aabdelzaher',
     'about.subtitle': 'We are a specialized consulting firm founded by experts who held leadership positions in civil protection, forensic evidence, and forensic medicine, with over 20 years of practical experience.',
     'about.mission.title': 'Our Mission',
     'about.mission.desc': 'To provide specialized technical and legal consulting services that support justice and help resolve complex technical and legal issues through scientific analysis and professional expertise.',
@@ -133,7 +133,7 @@ const translations = {
     'footer.services': 'Services',
     'footer.quickLinks': 'Quick Links',
     'footer.contactInfo': 'Contact Info',
-    'footer.copyright': '© 2024 aabdelzaher.com. All rights reserved.',
+    'footer.copyright': '© 2024 aabdelzaher. All rights reserved.',
   },
   ar: {
     // Navigation
@@ -148,7 +148,7 @@ const translations = {
     'nav.explosivesAnalysis': 'تحليل المتفجرات',
 
     // Home Page
-    'home.hero.title': 'aabdelzaher.com - استشارات فنية وقانونية متخصصة',
+    'home.hero.title': 'aabdelzaher - استشارات فنية وقانونية متخصصة',
     'home.hero.subtitle': 'نتخصص في تقديم الاستشارات الفنية والقانونية في مجالات الحماية المدنية والأدلة الجنائية ومكافحة الحرائق والمفرقعات، بخبرة عملية تتجاوز 20 عاماً.',
     'home.cta.consultation': 'احجز استشارة',
     'home.cta.contact': 'اتصل بنا',
@@ -163,7 +163,7 @@ const translations = {
     'home.cta.final.subtitle': 'اتصل بنا اليوم للحصول على استشارة فنية متخصصة واكتشف كيف يمكن لخبرتنا أن تدعم قضيتك أو مشروعك.',
 
     // About Page
-    'about.title': 'حول aabdelzaher.com',
+    'about.title': 'حول aabdelzaher',
     'about.subtitle': 'نحن شركة استشارات متخصصة تأسست على يد نخبة من الخبراء الذين شغلوا مناصب قيادية في مجالات الحماية المدنية والأدلة الجنائية والطب الشرعي، بخبرة عملية تتجاوز 20 عاماً.',
     'about.mission.title': 'مهمتنا',
     'about.mission.desc': 'تقديم استشارات فنية وقانونية متخصصة تدعم العدالة وتساعد في حل القضايا الفنية والقانونية المعقدة من خلال التحليل العلمي والخبرة المهنية.',
@@ -261,7 +261,7 @@ const translations = {
     'footer.services': 'الخدمات',
     'footer.quickLinks': 'روابط سريعة',
     'footer.contactInfo': 'معلومات الاتصال',
-    'footer.copyright': '© 2024 aabdelzaher.com. جميع الحقوق محفوظة.',
+    'footer.copyright': '© 2024 aabdelzaher. جميع الحقوق محفوظة.',
   }
 };
 

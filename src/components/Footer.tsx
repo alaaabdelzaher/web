@@ -11,7 +11,7 @@ const Footer = () => {
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
               <Shield className="h-6 w-6 text-blue-400" />
-              <span className="text-xl font-bold">aabdelzaher.com</span>
+              <span className="text-xl font-bold">aabdelzaher</span>
             </div>
             <p className="text-gray-400 text-sm">
               Specialized technical and legal consulting with over 20 years of professional experience in civil protection, forensic evidence, and fire & explosives control.
@@ -68,7 +68,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <Mail className="h-4 w-4 text-blue-400" />
-                <span className="text-gray-400 text-sm">info@forensicpro.com</span>
+                <span className="text-gray-400 text-sm">info@aabdelzaher.com</span>
               </div>
               <div className="flex items-center space-x-2">
                 <MapPin className="h-4 w-4 text-blue-400" />
@@ -80,7 +80,7 @@ const Footer = () => {
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">
           <p className="text-gray-400 text-sm">
-            © 2024 ForensicPro. All rights reserved. | Privacy Policy | Terms of Service
+            © 2024 aabdelzaher. All rights reserved. | Privacy Policy | Terms of Service
           </p>
         </div>
       </div>

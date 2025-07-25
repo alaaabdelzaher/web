@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Award, Search, FileText, Shield, CheckCircle } from 'lucide-react';
+import { Award, Search, FileText, Shield, CheckCircle, Flame, AlertTriangle, Zap, Target } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { DatabaseService } from '../../lib/supabase';
 
@@ -14,7 +14,6 @@ const ExplosivesAnalysis = () => {
       try {
         setLoading(true);
         const content = await DatabaseService.getServicePageContent('explosives-analysis');
-        console.log('Loaded explosives analysis content:', content);
         setPageContent(content);
       } catch (error) {
         console.error('Error loading page content:', error);
@@ -27,7 +26,6 @@ const ExplosivesAnalysis = () => {
 
   const getContentByKey = (key: string) => {
     const content = pageContent.find(item => item.section_key === key);
-    console.log(`Looking for key: ${key}, found:`, content);
     if (!content) return null;
     return {
       title: language === 'ar' ? content.section_title_ar : content.section_title_en,
@@ -50,58 +48,69 @@ const ExplosivesAnalysis = () => {
         <div className="text-center mb-16">
           <Award className="h-16 w-16 text-blue-800 mx-auto mb-4" />
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            {getContentByKey('hero')?.title || (language === 'ar' ? 'تحليل المتفجرات' : 'Explosives Analysis')}
+            {language === 'ar' ? 'مكافحة الحرائق والمفرقعات' : 'Fire & Explosives Control'}
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            {getContentByKey('hero')?.content || (language === 'ar' ? 
-              'خدمات متخصصة في تحليل المتفجرات تشمل تحديد المكونات والتقارير الفنية والاستشارة الخبيرة للأغراض القانونية والتحقيقية.' :
-              'Specialized explosives analysis services including component identification, technical reporting, and expert consultation for legal and investigative purposes.'
-            )}
+            {language === 'ar' ? 
+              'نقدم خدمات متخصصة في تحقيقات الحرائق وتحليل المفرقعات وإعداد التقارير الفنية والرد العلمي والفني على تقارير الخبراء والجهات المختلفة.' :
+              'We provide specialized services in fire investigations, explosives analysis, technical report preparation, and scientific and technical responses to expert reports from various agencies.'
+            }
           </p>
         </div>
 
-        {/* Dynamic Content Sections */}
-        {pageContent
-          .filter(section => section.section_key !== 'hero')
-          .sort((a, b) => a.section_order - b.section_order)
-          .map((section, index) => (
-            <div key={section.id} className="mb-16">
-              <div className="bg-white rounded-lg shadow-lg p-8">
-                <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
-                  {language === 'ar' ? section.section_title_ar : section.section_title_en}
-                </h2>
-                <div className="prose prose-lg max-w-none">
-                  <div 
-                    className="text-gray-600 leading-relaxed"
-                    style={{ whiteSpace: 'pre-wrap' }}
-                  >
-                    {language === 'ar' ? section.content_ar : section.content_en}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-
-        {/* Services Grid */}
+        {/* Main Services */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
           <div className="bg-white rounded-lg shadow-lg p-8">
-            <Search className="h-12 w-12 text-blue-800 mb-4" />
+            <Flame className="h-12 w-12 text-red-600 mb-4" />
             <h3 className="text-2xl font-semibold mb-4">
-              {language === 'ar' ? 'تحليل المكونات' : 'Components Analysis'}
+              {language === 'ar' ? 'تحقيقات الحرائق' : 'Fire Investigations'}
             </h3>
             <p className="text-gray-600 mb-6">
               {language === 'ar' ? 
-                'فحص مفصل للمواد المتفجرة والأجهزة والبقايا باستخدام تقنيات تحليلية متقدمة ومعدات متخصصة.' :
-                'Detailed examination of explosive materials, devices, and residues using advanced analytical techniques and specialized equipment.'
+                'نقوم بتحقيقات شاملة ومتخصصة في حوادث الحرائق لتحديد الأسباب والظروف المحيطة، مع إعداد تقارير فنية مفصلة تدعم الإجراءات القانونية.' :
+                'We conduct comprehensive and specialized investigations into fire incidents to determine causes and surrounding circumstances, with detailed technical reports supporting legal procedures.'
               }
             </p>
             <ul className="space-y-2">
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                 <span className="text-sm">
-                  {language === 'ar' ? 'تحديد التركيب الكيميائي' : 'Chemical composition identification'}
+                  {language === 'ar' ? 'تحديد نقطة بداية الحريق' : 'Fire origin point determination'}
                 </span>
               </li>
+              <li className="flex items-center">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                <span className="text-sm">
+                  {language === 'ar' ? 'تحليل أسباب الاشتعال' : 'Ignition cause analysis'}
+                </span>
+              </li>
+              <li className="flex items-center">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                <span className="text-sm">
+                  {language === 'ar' ? 'فحص الأدلة المادية' : 'Physical evidence examination'}
+                </span>
+              </li>
+              <li className="flex items-center">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                <span className="text-sm">
+                  {language === 'ar' ? 'تحليل أنماط الاحتراق' : 'Burn pattern analysis'}
+                </span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-lg p-8">
+            <Zap className="h-12 w-12 text-orange-600 mb-4" />
+            <h3 className="text-2xl font-semibold mb-4">
+              {language === 'ar' ? 'تحليل المفرقعات' : 'Explosives Analysis'}
+            </h3>
+            <p className="text-gray-600 mb-6">
+              {language === 'ar' ? 
+                'نقدم خدمات تحليل المواد المتفجرة والأجهزة المتفجرة، مع تحديد نوع المتفجرات المستخدمة وطريقة التفجير والآثار الناتجة.' :
+                'We provide analysis services for explosive materials and explosive devices, identifying the type of explosives used, detonation method, and resulting effects.'
+              }
+            </p>
+            <ul className="space-y-2">
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                 <span className="text-sm">
@@ -111,185 +120,246 @@ const ExplosivesAnalysis = () => {
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                 <span className="text-sm">
-                  {language === 'ar' ? 'إعادة بناء الجهاز' : 'Device reconstruction'}
-                </span>
-              </li>
-            </ul>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <FileText className="h-12 w-12 text-blue-800 mb-4" />
-            <h3 className="text-2xl font-semibold mb-4">
-              {language === 'ar' ? 'التقارير الفنية' : 'Technical Reports'}
-            </h3>
-            <p className="text-gray-600 mb-6">
-              {language === 'ar' ? 
-                'توثيق شامل ونتائج مقدمة في تقارير فنية مفصلة مناسبة للإجراءات القانونية والتحقيقات.' :
-                'Comprehensive documentation and findings presented in detailed technical reports suitable for legal proceedings and investigations.'
-              }
-            </p>
-            <ul className="space-y-2">
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">
-                  {language === 'ar' ? 'نتائج تحليلية مفصلة' : 'Detailed analytical findings'}
+                  {language === 'ar' ? 'فحص الأجهزة المتفجرة' : 'Explosive device examination'}
                 </span>
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                 <span className="text-sm">
-                  {language === 'ar' ? 'توثيق المنهجية العلمية' : 'Scientific methodology documentation'}
+                  {language === 'ar' ? 'تحديد نوع المتفجرات' : 'Explosive type identification'}
                 </span>
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                 <span className="text-sm">
-                  {language === 'ar' ? 'أدلة مقبولة في المحكمة' : 'Court-admissible evidence'}
-                </span>
-              </li>
-            </ul>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <Shield className="h-12 w-12 text-blue-800 mb-4" />
-            <h3 className="text-2xl font-semibold mb-4">
-              {language === 'ar' ? 'الشهادة الخبيرة' : 'Expert Testimony'}
-            </h3>
-            <p className="text-gray-600 mb-6">
-              {language === 'ar' ? 
-                'خدمات شاهد خبير مؤهل للمحكمة تقدم شهادة واضحة ومهنية في المسائل المتعلقة بالمتفجرات.' :
-                'Court-qualified expert witness services providing clear, professional testimony on explosives-related matters.'
-              }
-            </p>
-            <ul className="space-y-2">
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">
-                  {language === 'ar' ? 'شهادة قاعة المحكمة' : 'Courtroom testimony'}
-                </span>
-              </li>
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">
-                  {language === 'ar' ? 'خدمات الإفادة' : 'Deposition services'}
-                </span>
-              </li>
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">
-                  {language === 'ar' ? 'استشارة القضية' : 'Case consultation'}
-                </span>
-              </li>
-            </ul>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <Award className="h-12 w-12 text-blue-800 mb-4" />
-            <h3 className="text-2xl font-semibold mb-4">
-              {language === 'ar' ? 'معدات متخصصة' : 'Specialized Equipment'}
-            </h3>
-            <p className="text-gray-600 mb-6">
-              {language === 'ar' ? 
-                'معدات تحليلية حديثة وأدوات متخصصة لتحديد وتحليل المتفجرات بدقة.' :
-                'State-of-the-art analytical equipment and specialized tools for accurate explosives identification and analysis.'
-              }
-            </p>
-            <ul className="space-y-2">
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">
-                  {language === 'ar' ? 'قياس الطيف الكتلي' : 'Mass spectrometry'}
-                </span>
-              </li>
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">
-                  {language === 'ar' ? 'علم البلورات بالأشعة السينية' : 'X-ray crystallography'}
-                </span>
-              </li>
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">
-                  {language === 'ar' ? 'التحليل الطيفي بالأشعة تحت الحمراء' : 'Infrared spectroscopy'}
+                  {language === 'ar' ? 'تحليل آثار الانفجار' : 'Blast effect analysis'}
                 </span>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Certifications */}
+        {/* Technical Reports Section */}
         <div className="bg-gray-50 rounded-lg p-8 mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Professional Certifications</h2>
+          <div className="text-center mb-8">
+            <FileText className="h-12 w-12 text-blue-800 mx-auto mb-4" />
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              {language === 'ar' ? 'التقارير الفنية المتخصصة' : 'Specialized Technical Reports'}
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              {language === 'ar' ? 
+                'نعد تقارير فنية شاملة ومفصلة تدعم القضايا القانونية والتأمينية، مع الرد العلمي والفني على تقارير الخبراء الآخرين.' :
+                'We prepare comprehensive and detailed technical reports supporting legal and insurance cases, with scientific and technical responses to other expert reports.'
+              }
+            </p>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="bg-blue-800 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <Award className="h-8 w-8" />
+            <div className="bg-white rounded-lg p-6 text-center">
+              <div className="bg-red-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <Flame className="h-8 w-8 text-red-800" />
               </div>
-              <h3 className="font-semibold mb-2">IABTI Certified</h3>
-              <p className="text-sm text-gray-600">International Association of Bomb Technicians and Investigators</p>
+              <h3 className="font-semibold mb-2">
+                {language === 'ar' ? 'تقارير الحرائق' : 'Fire Reports'}
+              </h3>
+              <p className="text-sm text-gray-600">
+                {language === 'ar' ? 
+                  'تقارير مفصلة عن أسباب الحرائق والأضرار الناتجة' :
+                  'Detailed reports on fire causes and resulting damages'
+                }
+              </p>
             </div>
-            <div className="text-center">
-              <div className="bg-blue-800 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <Award className="h-8 w-8" />
+
+            <div className="bg-white rounded-lg p-6 text-center">
+              <div className="bg-orange-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle className="h-8 w-8 text-orange-800" />
               </div>
-              <h3 className="font-semibold mb-2">ATF Certified</h3>
-              <p className="text-sm text-gray-600">Bureau of Alcohol, Tobacco, Firearms and Explosives</p>
+              <h3 className="font-semibold mb-2">
+                {language === 'ar' ? 'تقارير الانفجارات' : 'Explosion Reports'}
+              </h3>
+              <p className="text-sm text-gray-600">
+                {language === 'ar' ? 
+                  'تحليل شامل للانفجارات وتحديد المسببات' :
+                  'Comprehensive explosion analysis and cause determination'
+                }
+              </p>
             </div>
-            <div className="text-center">
-              <div className="bg-blue-800 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <Award className="h-8 w-8" />
+
+            <div className="bg-white rounded-lg p-6 text-center">
+              <div className="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <Target className="h-8 w-8 text-blue-800" />
               </div>
-              <h3 className="font-semibold mb-2">FBI Trained</h3>
-              <p className="text-sm text-gray-600">Federal Bureau of Investigation Explosives Unit</p>
+              <h3 className="font-semibold mb-2">
+                {language === 'ar' ? 'الرد على التقارير' : 'Report Responses'}
+              </h3>
+              <p className="text-sm text-gray-600">
+                {language === 'ar' ? 
+                  'رد علمي وفني على تقارير الخبراء الآخرين' :
+                  'Scientific and technical responses to other expert reports'
+                }
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Our Expertise */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+            {language === 'ar' ? 'خبرتنا المتخصصة' : 'Our Specialized Expertise'}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <Search className="h-8 w-8 text-blue-800 mb-4" />
+              <h3 className="text-xl font-semibold mb-4">
+                {language === 'ar' ? 'تقنيات التحقيق المتقدمة' : 'Advanced Investigation Techniques'}
+              </h3>
+              <p className="text-gray-600 mb-4">
+                {language === 'ar' ? 
+                  'نستخدم أحدث التقنيات والأدوات في تحقيقات الحرائق والانفجارات، مما يضمن الحصول على نتائج دقيقة وموثوقة.' :
+                  'We use the latest techniques and tools in fire and explosion investigations, ensuring accurate and reliable results.'
+                }
+              </p>
+              <ul className="space-y-2">
+                <li className="flex items-center">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-sm">
+                    {language === 'ar' ? 'التصوير الحراري' : 'Thermal imaging'}
+                  </span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-sm">
+                    {language === 'ar' ? 'التحليل الطيفي' : 'Spectral analysis'}
+                  </span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-sm">
+                    {language === 'ar' ? 'المحاكاة الحاسوبية' : 'Computer simulation'}
+                  </span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <Shield className="h-8 w-8 text-blue-800 mb-4" />
+              <h3 className="text-xl font-semibold mb-4">
+                {language === 'ar' ? 'الخبرة القانونية' : 'Legal Expertise'}
+              </h3>
+              <p className="text-gray-600 mb-4">
+                {language === 'ar' ? 
+                  'فريقنا لديه خبرة واسعة في إعداد التقارير الفنية التي تدعم الإجراءات القانونية والقضايا التأمينية.' :
+                  'Our team has extensive experience in preparing technical reports that support legal procedures and insurance cases.'
+                }
+              </p>
+              <ul className="space-y-2">
+                <li className="flex items-center">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-sm">
+                    {language === 'ar' ? 'تقارير معتمدة قانونياً' : 'Legally certified reports'}
+                  </span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-sm">
+                    {language === 'ar' ? 'شهادة خبراء في المحاكم' : 'Expert testimony in courts'}
+                  </span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-sm">
+                    {language === 'ar' ? 'استشارات قانونية فنية' : 'Technical legal consultations'}
+                  </span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Case Studies */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+            {language === 'ar' ? 'دراسات حالة' : 'Case Studies'}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h3 className="text-xl font-semibold mb-4">
+                {language === 'ar' ? 'حريق مجمع تجاري كبير' : 'Large Commercial Complex Fire'}
+              </h3>
+              <p className="text-gray-600 mb-4">
+                {language === 'ar' ? 
+                  'تحقيق شامل في حريق مجمع تجاري كبير أدى إلى أضرار بالملايين، حيث تم تحديد السبب الجذري وإعداد تقرير فني مفصل.' :
+                  'Comprehensive investigation of a large commercial complex fire that caused millions in damages, where the root cause was identified and a detailed technical report was prepared.'
+                }
+              </p>
+              <div className="text-sm text-gray-500">
+                <strong>{language === 'ar' ? 'النتيجة:' : 'Result:'}</strong> 
+                {language === 'ar' ? 
+                  ' تحديد السبب الحقيقي وتبرئة المالك من التهم' :
+                  ' Real cause identified and owner cleared of charges'
+                }
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h3 className="text-xl font-semibold mb-4">
+                {language === 'ar' ? 'انفجار في منشأة صناعية' : 'Industrial Facility Explosion'}
+              </h3>
+              <p className="text-gray-600 mb-4">
+                {language === 'ar' ? 
+                  'تحليل انفجار في منشأة صناعية مع تحديد نوع المتفجرات المستخدمة وطريقة التفجير، مما ساعد في كشف الحقائق.' :
+                  'Analysis of an explosion in an industrial facility with identification of the type of explosives used and detonation method, helping uncover the facts.'
+                }
+              </p>
+              <div className="text-sm text-gray-500">
+                <strong>{language === 'ar' ? 'النتيجة:' : 'Result:'}</strong> 
+                {language === 'ar' ? 
+                  ' كشف العمل الإجرامي وإحالة القضية للنيابة' :
+                  ' Criminal act uncovered and case referred to prosecution'
+                }
+              </div>
             </div>
           </div>
         </div>
 
         {/* Safety Protocols */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Safety Protocols</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-xl font-semibold mb-4">Laboratory Safety</h3>
-              <p className="text-gray-600 mb-4">
-                Our specialized laboratory maintains the highest safety standards for 
-                handling and analyzing explosive materials.
+        <div className="bg-yellow-50 rounded-lg p-8 mb-16">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+            {language === 'ar' ? 'بروتوكولات السلامة' : 'Safety Protocols'}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="text-center">
+              <div className="bg-yellow-200 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <Shield className="h-8 w-8 text-yellow-800" />
+              </div>
+              <h3 className="font-semibold mb-2">
+                {language === 'ar' ? 'معدات الحماية' : 'Protective Equipment'}
+              </h3>
+              <p className="text-sm text-gray-600">
+                {language === 'ar' ? 'استخدام أحدث معدات الحماية الشخصية' : 'Use of latest personal protective equipment'}
               </p>
-              <ul className="space-y-2">
-                <li className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  <span className="text-sm">Blast-resistant facilities</span>
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  <span className="text-sm">Proper ventilation systems</span>
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  <span className="text-sm">Emergency response protocols</span>
-                </li>
-              </ul>
             </div>
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-xl font-semibold mb-4">Personnel Training</h3>
-              <p className="text-gray-600 mb-4">
-                All personnel are extensively trained in explosive handling, safety 
-                procedures, and emergency response protocols.
+            <div className="text-center">
+              <div className="bg-yellow-200 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle className="h-8 w-8 text-yellow-800" />
+              </div>
+              <h3 className="font-semibold mb-2">
+                {language === 'ar' ? 'إجراءات الطوارئ' : 'Emergency Procedures'}
+              </h3>
+              <p className="text-sm text-gray-600">
+                {language === 'ar' ? 'خطط طوارئ شاملة لجميع المواقف' : 'Comprehensive emergency plans for all situations'}
               </p>
-              <ul className="space-y-2">
-                <li className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  <span className="text-sm">Certified bomb technicians</span>
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  <span className="text-sm">Ongoing safety training</span>
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  <span className="text-sm">Regular safety audits</span>
-                </li>
-              </ul>
+            </div>
+            <div className="text-center">
+              <div className="bg-yellow-200 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <Award className="h-8 w-8 text-yellow-800" />
+              </div>
+              <h3 className="font-semibold mb-2">
+                {language === 'ar' ? 'التدريب المستمر' : 'Continuous Training'}
+              </h3>
+              <p className="text-sm text-gray-600">
+                {language === 'ar' ? 'تدريب مستمر على أحدث تقنيات السلامة' : 'Continuous training on latest safety techniques'}
+              </p>
             </div>
           </div>
         </div>
@@ -297,12 +367,12 @@ const ExplosivesAnalysis = () => {
         {/* CTA Section */}
         <div className="bg-blue-800 text-white rounded-lg p-8 text-center">
           <h2 className="text-3xl font-bold mb-4">
-            {language === 'ar' ? 'تحتاج تحليل متفجرات؟' : 'Need Explosives Analysis?'}
+            {language === 'ar' ? 'تحتاج خبير في الحرائق والمفرقعات؟' : 'Need a Fire & Explosives Expert?'}
           </h2>
           <p className="text-xl text-blue-100 mb-6">
             {language === 'ar' ? 
-              'اتصل بنا اليوم لمناقشة احتياجات تحليل المتفجرات والحصول على استشارة خبيرة.' :
-              'Contact us today to discuss your explosives analysis needs and get expert consultation.'
+              'تواصل معنا اليوم للحصول على استشارة متخصصة في تحقيقات الحرائق وتحليل المفرقعات من خبراء معتمدين.' :
+              'Contact us today for specialized consultation in fire investigations and explosives analysis from certified experts.'
             }
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
