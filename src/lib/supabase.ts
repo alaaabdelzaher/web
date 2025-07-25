@@ -714,13 +714,19 @@ export class DatabaseService {
 
   static async createContactMessage(message: Partial<ContactMessage>) {
     try {
+      console.log('Creating contact message:', message);
       const { data, error } = await supabase
         .from('contact_messages')
         .insert(message)
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      
+      console.log('Message created successfully:', data);
       return data as ContactMessage;
     } catch (error) {
       console.error('Error creating contact message:', error);

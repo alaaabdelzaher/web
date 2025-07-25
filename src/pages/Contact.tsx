@@ -26,14 +26,22 @@ const Contact = () => {
 
     try {
       setSubmitting(true);
-      await DatabaseService.createContactMessage({
+      const messageData = {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
         subject: formData.subject,
         message: formData.message,
-        status: 'new'
-      });
+        status: 'new',
+        ip_address: null,
+        user_agent: navigator.userAgent
+      };
+      
+      const result = await DatabaseService.createContactMessage(messageData);
+      
+      if (!result) {
+        throw new Error('Failed to send message');
+      }
       
       setSubmitMessage(language === 'ar' ? 
         'شكراً لك على رسالتك. سنعود إليك خلال 24 ساعة.' : 
@@ -41,6 +49,7 @@ const Contact = () => {
       );
       setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
     } catch (error) {
+      console.error('Error sending message:', error);
       setSubmitMessage(language === 'ar' ? 
         'حدث خطأ في إرسال الرسالة. يرجى المحاولة مرة أخرى.' : 
         'Error sending message. Please try again.'
