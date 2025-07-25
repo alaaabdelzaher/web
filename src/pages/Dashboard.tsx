@@ -56,7 +56,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         DatabaseService.getTestimonials(),
         DatabaseService.getStats(),
         DatabaseService.getTeamMembers(),
-        DatabaseService.getContentSection('about_content')
+        servicePagesData,
+        DatabaseService.getAllServicePagesContent(),
+        DatabaseService.getHomepageContent()
       ]);
       
       const [servicesData2, postsData2, certsData, teamData2, messagesData, aboutData2] = await Promise.all([
@@ -81,6 +83,17 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
           setAboutContent({});
         }
       }
+      
+      // Load homepage content
+      const homepageObj: any = {};
+      homepageData.forEach((section: any) => {
+        try {
+          homepageObj[section.section_key] = JSON.parse(section.content);
+        } catch {
+          homepageObj[section.section_key] = { content: section.content };
+        }
+      });
+      setHomepageContent(homepageObj);
     } catch (error) {
       console.error('Error loading data:', error);
       showMessage('خطأ في تحميل البيانات', 'error');
