@@ -7,7 +7,7 @@ import {
   AlertTriangle, LogOut, Upload, Image as ImageIcon
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { DatabaseService } from '../lib/supabase';
+import { DatabaseService, supabase } from '../lib/supabase';
 
 interface DashboardProps {
   onLogout: () => void;
