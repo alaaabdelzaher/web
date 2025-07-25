@@ -10,7 +10,11 @@ const Footer = () => {
           {/* Company Info */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
-              <Shield className="h-6 w-6 text-blue-400" />
+              <img 
+                src="/a-professional-logo-design-featuring-the_mnJr88-WTni4jIkiKkhWJg_wHXCDmHAS-ynu2s4ZPeQhg-removebg-preview (1).png" 
+                alt="aabdelzaher Logo" 
+                className="h-6 w-6" 
+              />
               <span className="text-xl font-bold">aabdelzaher</span>
             </div>
             <p className="text-gray-400 text-sm">

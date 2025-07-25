@@ -249,7 +249,11 @@ const Home = () => {
             {displayServices.slice(0, 3).map((service) => (
               <div key={service.id} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
                 <div className="bg-gradient-to-r from-blue-800 to-blue-900 p-6">
-                  <Shield className="h-12 w-12 text-white mb-4" />
+                  <img 
+                    src="/a-professional-logo-design-featuring-the_mnJr88-WTni4jIkiKkhWJg_wHXCDmHAS-ynu2s4ZPeQhg-removebg-preview (1).png" 
+                    alt="Service Icon" 
+                    className="h-12 w-12 mb-4 filter brightness-0 invert" 
+                  />
                   <h3 className="text-2xl font-bold text-white">{service.title}</h3>
                 </div>
                 <div className="p-6">

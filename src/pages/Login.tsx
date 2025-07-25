@@ -35,7 +35,11 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <Shield className="h-12 w-12 text-blue-800" />
+            <img 
+              src="/a-professional-logo-design-featuring-the_mnJr88-WTni4jIkiKkhWJg_wHXCDmHAS-ynu2s4ZPeQhg-removebg-preview (1).png" 
+              alt="aabdelzaher Logo" 
+              className="h-12 w-12" 
+            />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
             {language === 'ar' ? 'لوحة التحكم الإدارية' : 'Admin Dashboard'}
