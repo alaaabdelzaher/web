@@ -848,12 +848,298 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     </div>
   );
 
-  const renderHomepageManagement = () => (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6">إدارة الصفحة الرئيسية</h2>
-      {/* Homepage management content */}
-    </div>
-  );
+  const renderHomepageManagement = () => {
+    const [data, setData] = useState({
+      homepageContent: [],
+      servicePagesContent: []
+    });
+    const [editingContent, setEditingContent] = useState(null);
+    const [editingServiceContent, setEditingServiceContent] = useState(null);
+    const [newServiceContent, setNewServiceContent] = useState({
+      service_type: 'civil-protection',
+      section_key: '',
+      section_title_ar: '',
+      section_title_en: '',
+      content_ar: '',
+      content_en: '',
+      section_order: 1
+    });
+
+    React.useEffect(() => {
+      const loadHomepageContent = async () => {
+        try {
+          setLoading(true);
+          const content = await DatabaseService.getHomepageContent();
+          
+          // تنظيم المحتوى حسب الأقسام
+          const organizedContent = {};
+          content.forEach(section => {
+            organizedContent[section.section_key] = section;
+          });
+          
+          setData(prev => ({ ...prev, homepageContent: content }));
+        } catch (error) {
+          console.error('Error loading homepage content:', error);
+          showMessage('خطأ في تحميل محتوى الصفحة الرئيسية', 'error');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadHomepageContent();
+    }, []);
+
+    const saveHomepageContent = async () => {
+      try {
+        setLoading(true);
+        if (editingContent.id) {
+          await DatabaseService.updateHomepageContent(editingContent.id, editingContent);
+          showMessage('تم تحديث المحتوى بنجاح');
+        } else {
+          await DatabaseService.createHomepageContent(editingContent);
+          showMessage('تم إضافة المحتوى بنجاح');
+        }
+        setEditingContent(null);
+        // إعادة تحميل البيانات
+        const content = await DatabaseService.getHomepageContent();
+        setData(prev => ({ ...prev, homepageContent: content }));
+      } catch (error) {
+        console.error('Error saving homepage content:', error);
+        showMessage('خطأ في حفظ المحتوى', 'error');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const deleteHomepageContent = async (id) => {
+      if (confirm('هل أنت متأكد من حذف هذا المحتوى؟')) {
+        try {
+          await DatabaseService.deleteHomepageContent(id);
+          showMessage('تم حذف المحتوى بنجاح');
+          // إعادة تحميل البيانات
+          const content = await DatabaseService.getHomepageContent();
+          setData(prev => ({ ...prev, homepageContent: content }));
+        } catch (error) {
+          console.error('Error deleting homepage content:', error);
+          showMessage('خطأ في حذف المحتوى', 'error');
+        }
+      }
+    };
+
+    const saveServicePageContent = async () => {
+      try {
+        setLoading(true);
+        const contentToSave = editingServiceContent.id ? editingServiceContent : newServiceContent;
+        
+        if (editingServiceContent.id) {
+          await DatabaseService.updateServicePageContent(editingServiceContent.id, contentToSave);
+          showMessage('تم تحديث المحتوى بنجاح');
+        } else {
+          await DatabaseService.createServicePageContent(contentToSave);
+          showMessage('تم إضافة المحتوى بنجاح');
+          setNewServiceContent({
+            service_type: 'civil-protection',
+            section_key: '',
+            section_title_ar: '',
+            section_title_en: '',
+            content_ar: '',
+            content_en: '',
+            section_order: 1
+          });
+        }
+        
+        setEditingServiceContent(null);
+        // إعادة تحميل البيانات
+        const content = await DatabaseService.getServicePagesContent();
+        setData(prev => ({ ...prev, servicePagesContent: content }));
+      } catch (error) {
+        console.error('Error saving service page content:', error);
+        showMessage('خطأ في حفظ المحتوى', 'error');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const deleteServicePageContent = async (id) => {
+      if (confirm('هل أنت متأكد من حذف هذا المحتوى؟')) {
+        try {
+          await DatabaseService.deleteServicePageContent(id);
+          showMessage('تم حذف المحتوى بنجاح');
+          // إعادة تحميل البيانات
+          const content = await DatabaseService.getServicePagesContent();
+          setData(prev => ({ ...prev, servicePagesContent: content }));
+        } catch (error) {
+          console.error('Error deleting service page content:', error);
+          showMessage('خطأ في حذف المحتوى', 'error');
+        }
+      }
+    };
+
+    return (
+      <div className="p-6">
+        <h2 className="text-2xl font-bold mb-6">إدارة الصفحة الرئيسية</h2>
+        
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h3 className="text-xl font-semibold">أقسام الصفحة الرئيسية</h3>
+            <button
+              onClick={() => setEditingContent({
+                section_key: '',
+                section_title_ar: '',
+                section_title_en: '',
+                content_ar: '',
+                content_en: '',
+                section_order: 1,
+                is_active: true
+              })}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              إضافة قسم جديد
+            </button>
+          </div>
+
+          {/* Homepage Content Sections */}
+          <div className="grid grid-cols-1 gap-4">
+            {data.homepageContent
+              ?.sort((a, b) => a.section_order - b.section_order)
+              ?.map((content) => (
+              <div key={content.id} className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h4 className="font-semibold text-lg text-gray-900">{content.section_title_ar}</h4>
+                    <p className="text-sm text-gray-500">{content.section_title_en}</p>
+                    <p className="text-xs text-gray-400">المفتاح: {content.section_key}</p>
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => setEditingContent(content)}
+                      className="text-blue-600 hover:text-blue-800 text-sm"
+                    >
+                      تحرير
+                    </button>
+                    <button
+                      onClick={() => deleteHomepageContent(content.id)}
+                      className="text-red-600 hover:text-red-800 text-sm"
+                    >
+                      حذف
+                    </button>
+                  </div>
+                </div>
+                <div className="text-sm text-gray-600">
+                  <p className="mb-2"><strong>العربية:</strong> {content.content_ar.substring(0, 150)}...</p>
+                  <p><strong>English:</strong> {content.content_en.substring(0, 150)}...</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Edit/Add Modal */}
+          {editingContent && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                <h3 className="text-xl font-semibold mb-4">
+                  {editingContent.id ? 'تحرير القسم' : 'إضافة قسم جديد'}
+                </h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">مفتاح القسم</label>
+                    <input
+                      type="text"
+                      value={editingContent.section_key}
+                      onChange={(e) => setEditingContent({...editingContent, section_key: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="مثال: hero, about, services"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">العنوان (عربي)</label>
+                      <input
+                        type="text"
+                        value={editingContent.section_title_ar}
+                        onChange={(e) => setEditingContent({...editingContent, section_title_ar: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">العنوان (إنجليزي)</label>
+                      <input
+                        type="text"
+                        value={editingContent.section_title_en}
+                        onChange={(e) => setEditingContent({...editingContent, section_title_en: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">المحتوى (عربي)</label>
+                    <textarea
+                      value={editingContent.content_ar}
+                      onChange={(e) => setEditingContent({...editingContent, content_ar: e.target.value})}
+                      rows={4}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">المحتوى (إنجليزي)</label>
+                    <textarea
+                      value={editingContent.content_en}
+                      onChange={(e) => setEditingContent({...editingContent, content_en: e.target.value})}
+                      rows={4}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">ترتيب القسم</label>
+                    <input
+                      type="number"
+                      value={editingContent.section_order}
+                      onChange={(e) => setEditingContent({...editingContent, section_order: parseInt(e.target.value)})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="is_active"
+                      checked={editingContent.is_active}
+                      onChange={(e) => setEditingContent({...editingContent, is_active: e.target.checked})}
+                      className="mr-2"
+                    />
+                    <label htmlFor="is_active" className="text-sm font-medium text-gray-700">
+                      نشط
+                    </label>
+                  </div>
+                </div>
+
+                <div className="flex justify-end space-x-4 mt-6">
+                  <button
+                    onClick={() => setEditingContent(null)}
+                    className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                  >
+                    إلغاء
+                  </button>
+                  <button
+                    onClick={saveHomepageContent}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    disabled={loading}
+                  >
+                    {loading ? 'جاري الحفظ...' : 'حفظ'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   // Certifications Management
   const renderCertificationsManagement = () => (
