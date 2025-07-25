@@ -1,47 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Home, 
-  FileText, 
-  Settings, 
-  MessageSquare, 
-  LogOut,
-  Edit3,
-  Save,
-  CheckCircle,
-  AlertCircle,
-  Loader,
-  Shield,
-  Users,
-  Award,
-  Phone,
-  Mail,
-  MapPin,
-  Star,
-  Plus,
-  Trash2,
-  Eye,
-  EyeOff,
-  Globe,
-  Moon,
-  Sun,
-  Link as LinkIcon,
-  Certificate,
-  Briefcase,
-  MessageCircle,
-  Navigation,
-  Palette,
-  Database,
-  Lock,
-  BarChart3,
-  Image,
-  Search,
-  Filter,
-  ChevronDown,
-  ChevronUp,
-  ExternalLink,
-  Copy,
-  RefreshCw
-} from 'lucide-react';
+import { Home, FileText, Settings, MessageSquare, LogOut, Edit3, Save, CheckCircle, AlertCircle, Loader, Shield, Users, Award, Phone, Mail, MapPin, Star, Plus, Trash2, Eye, EyeOff, Globe, Moon, Sun, Link as LinkIcon, AlignCenterVertical as Certificate, Briefcase, MessageCircle, Navigation, Palette, Database, Lock, BarChart3, Image, Search, Filter, ChevronDown, ChevronUp, ExternalLink, Copy, RefreshCw } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { DatabaseService, supabase } from '../lib/supabase';
 
