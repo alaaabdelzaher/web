@@ -43,7 +43,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   const loadAllData = async () => {
     try {
       setLoading(true);
-      const [
+      const [posts, sections, messages, services, teamMembers, testimonials, stats, certificationsData] = await Promise.all([
         servicesData,
         postsData,
         certificationsData,
@@ -56,7 +56,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         DatabaseService.getTestimonials(),
         DatabaseService.getStats(),
         DatabaseService.getTeamMembers(),
-        DatabaseService.getContentSection('about_content')
+        DatabaseService.getStats().catch(() => []),
+        DatabaseService.getCertifications().catch(() => [])
       ]);
       
       const [servicesData2, postsData2, certsData, teamData2, messagesData, aboutData2] = await Promise.all([
@@ -81,6 +82,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
           setAboutContent({});
         }
       }
+      setCertifications(certificationsData);
     } catch (error) {
       console.error('Error loading data:', error);
       showMessage('خطأ في تحميل البيانات', 'error');
