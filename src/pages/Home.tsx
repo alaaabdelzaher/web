@@ -40,12 +40,12 @@ const Home = () => {
   const defaultContent = {
     hero: {
       title: {
-        ar: 'فورنسيك برو - خبرة موثوقة في الحماية المدنية والطب الشرعي',
-        en: 'ForensicPro - Trusted Expertise in Civil Protection & Forensics'
+        ar: 'aabdelzaher.com - استشارات فنية وقانونية متخصصة',
+        en: 'aabdelzaher.com - Specialized Technical and Legal Consulting'
       },
       subtitle: {
-        ar: 'مع أكثر من 20 عاماً من الخبرة، نقدم تحليلاً شرعياً شاملاً وخدمات الحماية المدنية والاستشارات الخبيرة للحالات القانونية والطوارئ.',
-        en: 'With over 20 years of experience, we provide comprehensive forensic analysis, civil protection services, and expert consultation for legal and emergency situations.'
+        ar: 'نتخصص في تقديم الاستشارات الفنية والقانونية في مجالات الحماية المدنية والأدلة الجنائية ومكافحة الحرائق والمفرقعات، بخبرة عملية تتجاوز 20 عاماً.',
+        en: 'We specialize in providing technical and legal consulting services in civil protection, forensic evidence, fire and explosives control, with over 20 years of professional experience.'
       },
       buttons: {
         consultation: { ar: 'احجز استشارة', en: 'Book Consultation' },
@@ -55,20 +55,20 @@ const Home = () => {
       experience: { ar: '20+ سنة خبرة', en: '20+ Years Experience' }
     },
     certifications: {
-      title: { ar: 'الشهادات المهنية', en: 'Professional Certifications' },
-      subtitle: { ar: 'خبرة معترف بها وأوراق اعتماد صناعية', en: 'Recognized expertise and industry credentials' }
+      title: { ar: 'الشهادات المهنية والخبرات', en: 'Professional Certifications & Expertise' },
+      subtitle: { ar: 'شهادات رسمية وخبرات موثقة من جهات حكومية ومؤسسات تدريبية دولية', en: 'Official certifications and documented expertise from government and international training institutions' }
     },
     services: {
       title: { ar: 'خدماتنا الأساسية', en: 'Our Core Services' },
-      subtitle: { ar: 'خبرة شاملة عبر تخصصات متعددة', en: 'Comprehensive expertise across multiple disciplines' }
+      subtitle: { ar: 'استشارات فنية وقانونية متخصصة عبر تخصصات متعددة في الأدلة الجنائية والحماية المدنية', en: 'Specialized technical and legal consulting across multiple forensic and civil protection disciplines' }
     },
     testimonials: {
       title: { ar: 'شهادات العملاء', en: 'Client Testimonials' },
-      subtitle: { ar: 'موثوق من قبل المهنيين القانونيين والمؤسسات', en: 'Trusted by legal professionals and organizations' }
+      subtitle: { ar: 'موثوق من قبل المحامين والشركات والمؤسسات في إعداد التقارير الفنية والاستشارات المتخصصة', en: 'Trusted by lawyers, companies, and institutions for technical reports and expert consultation' }
     },
     cta: {
       title: { ar: 'مستعد للبدء؟', en: 'Ready to Get Started?' },
-      subtitle: { ar: 'اتصل بنا اليوم للحصول على استشارة واكتشف كيف يمكن لخبرتنا أن تساعد قضيتك.', en: 'Contact us today for a consultation and discover how our expertise can help your case.' },
+      subtitle: { ar: 'اتصل بنا اليوم للحصول على استشارة فنية متخصصة واكتشف كيف يمكن لخبرتنا أن تدعم قضيتك أو مشروعك.', en: 'Contact us today for specialized technical consultation and discover how our expertise can support your case or project.' },
       buttons: {
         consultation: { ar: 'احجز استشارة', en: 'Book Consultation' },
         contact: { ar: 'اتصل بنا', en: 'Contact Us' }
@@ -80,44 +80,45 @@ const Home = () => {
   const defaultServices = [
     {
       id: '1',
-      title: language === 'ar' ? 'الحماية المدنية' : 'Civil Protection',
+      title: language === 'ar' ? 'استشارات الحماية المدنية' : 'Civil Protection Consulting',
       description: language === 'ar' ? 
-        'تقارير فحص المباني، تحليل أسباب الحرائق، التخطيط للطوارئ' :
-        'Building inspection reports, fire cause analysis, emergency planning',
+        'إطفاء، إنقاذ بري ونهري، تفتيش منشآت هامة، تحرير تقارير فنية بعد المعاينة' :
+        'Fire safety, rescue operations, facility inspections, technical reports after site examination',
       category: 'civil-protection',
       features: [
-        language === 'ar' ? 'تقييم السلامة الهيكلية' : 'Structural safety assessment',
-        language === 'ar' ? 'تحليل أسباب الحرائق' : 'Fire cause analysis',
-        language === 'ar' ? 'التخطيط للطوارئ' : 'Emergency planning',
-        language === 'ar' ? 'تقارير الامتثال' : 'Compliance reports'
+        language === 'ar' ? 'خدمات الإطفاء والإنقاذ' : 'Fire and rescue services',
+        language === 'ar' ? 'تفتيش المنشآت الهامة' : 'Critical facility inspections',
+        language === 'ar' ? 'التقارير الفنية المتخصصة' : 'Specialized technical reports',
+        language === 'ar' ? 'استشارات السلامة' : 'Safety consulting'
       ]
     },
     {
       id: '2',
-      title: language === 'ar' ? 'الطب الشرعي' : 'Forensics',
+      title: language === 'ar' ? 'الأدلة الجنائية والطب الشرعي' : 'Forensic Evidence & Medicine',
       description: language === 'ar' ? 
-        'تحليل مسرح الجريمة، فحص الأدلة المادية، تحديد سبب الوفاة' :
-        'Crime scene analysis, physical evidence examination, death cause determination',
+        'تحليل مسارح الجرائم، الأسلحة، الحرائق، المفرقعات، قضايا التزييف والتزوير، التحاليل البيولوجية، تحديد أسباب الوفاة' :
+        'Crime scene analysis, weapons examination, fires, explosives, forgery cases, biological analysis, cause of death determination',
       category: 'forensics',
       features: [
         language === 'ar' ? 'تحليل مسرح الجريمة' : 'Crime scene analysis',
-        language === 'ar' ? 'فحص الأدلة المادية' : 'Physical evidence examination',
+        language === 'ar' ? 'فحص الأسلحة والمفرقعات' : 'Weapons and explosives examination',
+        language === 'ar' ? 'قضايا التزييف والتزوير' : 'Forgery and counterfeiting cases',
         language === 'ar' ? 'تحديد سبب الوفاة' : 'Death cause determination',
-        language === 'ar' ? 'الشهادة الخبيرة' : 'Expert testimony'
+        language === 'ar' ? 'التحاليل البيولوجية' : 'Biological analysis'
       ]
     },
     {
       id: '3',
-      title: language === 'ar' ? 'تحليل المتفجرات' : 'Explosives Analysis',
+      title: language === 'ar' ? 'مكافحة الحرائق والمفرقعات' : 'Fire & Explosives Control',
       description: language === 'ar' ? 
-        'تحليل المكونات، التقارير الفنية، الشهادة الخبيرة' :
-        'Components analysis, technical reports, expert testimony',
+        'تحقيقات الحرائق، تحليل المفرقعات، التقارير الفنية، الرد العلمي والفني على تقارير الخبراء' :
+        'Fire investigation, explosives analysis, technical reports, expert responses to official reports',
       category: 'explosives-analysis',
       features: [
-        language === 'ar' ? 'تحليل المكونات' : 'Component analysis',
+        language === 'ar' ? 'تحقيقات الحرائق' : 'Fire investigations',
+        language === 'ar' ? 'تحليل المفرقعات' : 'Explosives analysis',
         language === 'ar' ? 'التقارير الفنية' : 'Technical reports',
-        language === 'ar' ? 'الشهادة الخبيرة' : 'Expert testimony',
-        language === 'ar' ? 'تحليل البقايا' : 'Residue analysis'
+        language === 'ar' ? 'الرد على تقارير الخبراء' : 'Expert report responses'
       ]
     }
   ];
@@ -126,22 +127,22 @@ const Home = () => {
   const defaultCertifications = [
     {
       id: '1',
-      name: language === 'ar' ? 'معتمد من IABTI' : 'IABTI Certified',
-      organization: language === 'ar' ? 'الجمعية الدولية لفنيي القنابل والمحققين' : 'International Association of Bomb Technicians',
+      name: language === 'ar' ? 'شهادات الحماية المدنية' : 'Civil Protection Certifications',
+      organization: language === 'ar' ? 'جهات رسمية حكومية' : 'Official Government Institutions',
       year_obtained: 2020,
       is_featured: true
     },
     {
       id: '2',
-      name: language === 'ar' ? 'معتمد من ATF' : 'ATF Certified',
-      organization: language === 'ar' ? 'مكتب الكحول والتبغ والأسلحة النارية والمتفجرات' : 'Bureau of Alcohol, Tobacco, Firearms and Explosives',
+      name: language === 'ar' ? 'شهادات الطب الشرعي' : 'Forensic Medicine Certifications',
+      organization: language === 'ar' ? 'مؤسسات تدريبية دولية' : 'International Training Institutions',
       year_obtained: 2018,
       is_featured: true
     },
     {
       id: '3',
-      name: language === 'ar' ? 'مدرب من FBI' : 'FBI Trained',
-      organization: language === 'ar' ? 'مكتب التحقيقات الفيدرالي - وحدة المتفجرات' : 'Federal Bureau of Investigation - Explosives Unit',
+      name: language === 'ar' ? 'شهادات الأدلة الجنائية' : 'Forensic Evidence Certifications',
+      organization: language === 'ar' ? 'جهات تدريبية متخصصة' : 'Specialized Training Organizations',
       year_obtained: 2015,
       is_featured: true
     }
@@ -155,8 +156,8 @@ const Home = () => {
       client_title: language === 'ar' ? 'محامي أول' : 'Senior Attorney',
       company: language === 'ar' ? 'مكتب المحاماة الدولي' : 'International Law Firm',
       testimonial: language === 'ar' ? 
-        'خبرة استثنائية وتحليل دقيق. ساعدونا في حل قضية معقدة بكفاءة عالية.' :
-        'Exceptional expertise and precise analysis. They helped us solve a complex case with high efficiency.',
+        'تقارير فنية متميزة ودقيقة ساعدتنا في دعم قضايانا القانونية. خبرة عملية واضحة في مجال الأدلة الجنائية.' :
+        'Outstanding and accurate technical reports that helped us support our legal cases. Clear practical expertise in forensic evidence.',
       rating: 5,
       featured: true
     },
@@ -166,8 +167,8 @@ const Home = () => {
       client_title: language === 'ar' ? 'مديرة السلامة' : 'Safety Manager',
       company: language === 'ar' ? 'شركة البناء الكبرى' : 'Major Construction Company',
       testimonial: language === 'ar' ? 
-        'تقارير شاملة ومهنية. أصبحوا شركاؤنا المفضلون في مجال السلامة.' :
-        'Comprehensive and professional reports. They have become our preferred partners in safety.',
+        'استشارات فنية متخصصة في مجال الحماية المدنية ساعدتنا في تطوير معايير السلامة في مشاريعنا.' :
+        'Specialized technical consulting in civil protection helped us develop safety standards in our projects.',
       rating: 5,
       featured: true
     }
@@ -366,11 +367,11 @@ const Home = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl mx-auto">
               <div className="flex items-center justify-center space-x-3">
                 <Phone className="h-5 w-5 text-blue-300" />
-                <span className="text-blue-100">+1 (555) 123-4567</span>
+                <span className="text-blue-100">+966 XX XXX XXXX</span>
               </div>
               <div className="flex items-center justify-center space-x-3">
                 <Mail className="h-5 w-5 text-blue-300" />
-                <span className="text-blue-100">info@forensicpro.com</span>
+                <span className="text-blue-100">info@aabdelzaher.com</span>
               </div>
             </div>
           </div>

@@ -11,10 +11,10 @@ const Footer = () => {
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
               <Shield className="h-6 w-6 text-blue-400" />
-              <span className="text-xl font-bold">ForensicPro</span>
+              <span className="text-xl font-bold">aabdelzaher.com</span>
             </div>
             <p className="text-gray-400 text-sm">
-              Trusted expertise in civil protection and forensics with over 20 years of experience.
+              Specialized technical and legal consulting with over 20 years of professional experience in civil protection, forensic evidence, and fire & explosives control.
             </p>
             <div className="flex space-x-4">
               <Facebook className="h-5 w-5 text-gray-400 hover:text-blue-400 cursor-pointer transition-colors" />

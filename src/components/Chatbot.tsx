@@ -11,8 +11,8 @@ const Chatbot = () => {
     { 
       id: 1, 
       text: language === 'ar' ? 
-        "مرحباً! أنا هنا لمساعدتك بمعلومات حول خدمات الطب الشرعي والحماية المدنية. كيف يمكنني مساعدتك اليوم؟" :
-        "Hello! I'm here to help you with information about our forensic and civil protection services. How can I assist you today?", 
+        "مرحباً! أنا هنا لمساعدتك بمعلومات حول خدماتنا في الاستشارات الفنية والقانونية المتخصصة في الحماية المدنية والأدلة الجنائية. كيف يمكنني مساعدتك اليوم؟" :
+        "Hello! I'm here to help you with information about our specialized technical and legal consulting services in civil protection and forensic evidence. How can I assist you today?", 
       sender: 'bot' 
     }
   ]);
@@ -44,8 +44,8 @@ const Chatbot = () => {
         const responseText = matchedResponse ? 
           matchedResponse.response_text :
           (language === 'ar' ? 
-            "شكراً لك على رسالتك. سيقوم أحد المختصين بمراجعة استفسارك والعودة إليك قريباً. للمساعدة الفورية، يرجى الاتصال بنا على +1 (555) 123-4567." :
-            "Thank you for your message. A specialist will review your inquiry and get back to you shortly. For immediate assistance, please call us at +1 (555) 123-4567."
+            "شكراً لك على رسالتك. سيقوم أحد المختصين بمراجعة استفسارك والعودة إليك قريباً. للمساعدة الفورية، يرجى الاتصال بنا على +966 XX XXX XXXX." :
+            "Thank you for your message. A specialist will review your inquiry and get back to you shortly. For immediate assistance, please call us at +966 XX XXX XXXX."
           );
 
         const botResponse = {

@@ -200,14 +200,14 @@ const Contact = () => {
                   <Phone className="h-5 w-5 text-blue-800" />
                   <div>
                     <div className="font-semibold">Phone</div>
-                    <div className="text-gray-600">+1 (555) 123-4567</div>
+                    <div className="text-gray-600">+966 XX XXX XXXX</div>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
                   <Mail className="h-5 w-5 text-blue-800" />
                   <div>
                     <div className="font-semibold">Email</div>
-                    <div className="text-gray-600">info@forensicpro.com</div>
+                    <div className="text-gray-600">info@aabdelzaher.com</div>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
@@ -215,9 +215,9 @@ const Contact = () => {
                   <div>
                     <div className="font-semibold">Address</div>
                     <div className="text-gray-600">
-                      123 Professional Drive<br />
-                      Suite 400<br />
-                      Forensic City, FC 12345
+                      المملكة العربية السعودية<br />
+                      الرياض<br />
+                      [العنوان التفصيلي]
                     </div>
                   </div>
                 </div>
@@ -251,10 +251,10 @@ const Contact = () => {
             <div className="bg-blue-800 text-white rounded-lg p-8">
               <h2 className="text-2xl font-bold mb-4">Emergency Contact</h2>
               <p className="text-blue-100 mb-4">
-                For urgent forensic analysis or emergency consultations, 
+                For urgent technical consultations or emergency cases, 
                 contact our 24/7 emergency hotline:
               </p>
-              <div className="text-2xl font-bold">+1 (555) 999-HELP</div>
+              <div className="text-2xl font-bold">+966 XX XXX XXXX</div>
               <div className="text-blue-100 text-sm mt-2">
                 Available 24 hours a day, 7 days a week
               </div>
