@@ -522,10 +522,10 @@ export class DatabaseService {
           const existingData = JSON.parse(existingSection.content);
           updatedContent = {
             ...existingData,
-            [language]: content
+            ...content
           };
         } catch (e) {
-          updatedContent = { [language]: content };
+          updatedContent = content;
         }
       } else if (typeof content === 'object') {
         updatedContent = JSON.stringify(content);

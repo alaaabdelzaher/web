@@ -3,7 +3,8 @@ import {
   Home, FileText, MessageSquare, Settings, Users, Shield, 
   Edit3, Save, X, Plus, Trash2, Eye, EyeOff, Moon, Sun,
   Phone, Mail, MapPin, Star, Award, CheckCircle, Globe,
-  Calendar, User, Tag, Search, ArrowRight, Target
+  Calendar, User, Tag, Search, ArrowRight, Target, Flame,
+  AlertTriangle
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { DatabaseService } from '../lib/supabase';
@@ -14,23 +15,23 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   const { language, setLanguage, t } = useLanguage();
-  const [activeSection, setActiveSection] = useState('home');
+  const [activeSection, setActiveSection] = useState('live-editor');
   const [editMode, setEditMode] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [previewLanguage, setPreviewLanguage] = useState<'ar' | 'en'>('ar');
 
   // Data states
-  const [sections, setSections] = useState<any[]>([]);
-  const [blogPosts, setBlogPosts] = useState<any[]>([]);
-  const [messages, setMessages] = useState<any[]>([]);
-  const [settings, setSettings] = useState<any>({});
+  const [heroContent, setHeroContent] = useState<any>({});
   const [certifications, setCertifications] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
   const [testimonials, setTestimonials] = useState<any[]>([]);
-  const [stats, setStats] = useState<any[]>([]);
+  const [contactInfo, setContactInfo] = useState<any>({});
+  const [blogPosts, setBlogPosts] = useState<any[]>([]);
+  const [messages, setMessages] = useState<any[]>([]);
 
-  // Load data
+  // Load all data on component mount
   useEffect(() => {
     loadAllData();
   }, []);
@@ -39,30 +40,46 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     try {
       setLoading(true);
       const [
-        sectionsData,
-        postsData,
-        messagesData,
+        heroData,
         certificationsData,
         servicesData,
         testimonialsData,
-        statsData
+        contactData,
+        postsData,
+        messagesData
       ] = await Promise.all([
-        DatabaseService.getContentSections(),
-        DatabaseService.getBlogPosts(),
-        DatabaseService.getContactMessages(),
+        DatabaseService.getContentSection('hero_content'),
         DatabaseService.getCertifications(),
         DatabaseService.getServices(),
         DatabaseService.getTestimonials(),
-        DatabaseService.getStats()
+        DatabaseService.getContentSection('contact_info'),
+        DatabaseService.getBlogPosts(),
+        DatabaseService.getContactMessages()
       ]);
 
-      setSections(sectionsData);
-      setBlogPosts(postsData);
-      setMessages(messagesData);
+      // Parse hero content
+      if (heroData?.content) {
+        try {
+          setHeroContent(JSON.parse(heroData.content));
+        } catch {
+          setHeroContent({});
+        }
+      }
+
+      // Parse contact info
+      if (contactData?.content) {
+        try {
+          setContactInfo(JSON.parse(contactData.content));
+        } catch {
+          setContactInfo({});
+        }
+      }
+
       setCertifications(certificationsData);
       setServices(servicesData);
       setTestimonials(testimonialsData);
-      setStats(statsData);
+      setBlogPosts(postsData);
+      setMessages(messagesData);
     } catch (error) {
       console.error('Error loading data:', error);
       showMessage('خطأ في تحميل البيانات', 'error');
@@ -76,45 +93,75 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     setTimeout(() => setMessage(''), 3000);
   };
 
-  const updateContent = async (key: string, content: string) => {
+  // Save content to Supabase
+  const saveContent = async (section: string, content: any) => {
     try {
-      await DatabaseService.updateContentSection(key, content);
-      await loadAllData();
+      await DatabaseService.updateContentSectionMultilingual(section, content, previewLanguage);
       showMessage('تم حفظ التغييرات بنجاح');
+      await loadAllData(); // Reload to sync
     } catch (error) {
+      console.error('Error saving content:', error);
       showMessage('خطأ في حفظ التغييرات', 'error');
     }
   };
 
-  const getContent = (key: string, fallback: string = '') => {
-    const section = sections.find(s => s.section_key === key);
-    return section?.content || fallback;
+  // Get content for current language
+  const getLocalizedContent = (content: any, key: string, fallback: string = '') => {
+    if (typeof content === 'object' && content[previewLanguage]) {
+      return content[previewLanguage][key] || fallback;
+    }
+    return content[key] || fallback;
   };
 
-  // Editable text component
+  // Editable text component with live preview
   const EditableText = ({ 
     content, 
+    contentKey,
+    section,
     onSave, 
     className = "", 
     placeholder = "اضغط للتعديل",
-    multiline = false 
+    multiline = false,
+    tag = 'span'
   }: {
-    content: string;
-    onSave: (value: string) => void;
+    content: any;
+    contentKey: string;
+    section: string;
+    onSave?: (value: string) => void;
     className?: string;
     placeholder?: string;
     multiline?: boolean;
+    tag?: string;
   }) => {
     const [isEditing, setIsEditing] = useState(false);
-    const [value, setValue] = useState(content);
+    const [value, setValue] = useState('');
 
-    const handleSave = () => {
-      onSave(value);
+    useEffect(() => {
+      setValue(getLocalizedContent(content, contentKey, placeholder));
+    }, [content, contentKey, previewLanguage]);
+
+    const handleSave = async () => {
+      const updatedContent = {
+        ...content,
+        [previewLanguage]: {
+          ...content[previewLanguage],
+          [contentKey]: value
+        }
+      };
+      
+      if (onSave) {
+        onSave(value);
+      } else {
+        await saveContent(section, updatedContent);
+      }
       setIsEditing(false);
     };
 
+    const displayValue = getLocalizedContent(content, contentKey, placeholder);
+
     if (!editMode) {
-      return <span className={className}>{content || placeholder}</span>;
+      const Tag = tag as keyof JSX.IntrinsicElements;
+      return <Tag className={className}>{displayValue}</Tag>;
     }
 
     if (isEditing) {
@@ -124,7 +171,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             <textarea
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              className="w-full p-2 border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-2 border-2 border-blue-500 rounded focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white text-gray-900"
               rows={3}
               autoFocus
             />
@@ -133,20 +180,20 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
               type="text"
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              className="w-full p-2 border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-2 border-2 border-blue-500 rounded focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white text-gray-900"
               autoFocus
             />
           )}
           <div className="flex gap-2 mt-2">
             <button
               onClick={handleSave}
-              className="bg-green-500 text-white p-1 rounded hover:bg-green-600"
+              className="bg-green-500 text-white p-2 rounded hover:bg-green-600 transition-colors"
             >
               <Save className="h-4 w-4" />
             </button>
             <button
               onClick={() => setIsEditing(false)}
-              className="bg-gray-500 text-white p-1 rounded hover:bg-gray-600"
+              className="bg-gray-500 text-white p-2 rounded hover:bg-gray-600 transition-colors"
             >
               <X className="h-4 w-4" />
             </button>
@@ -155,54 +202,65 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       );
     }
 
+    const Tag = tag as keyof JSX.IntrinsicElements;
     return (
       <div className="relative group">
-        <span className={className}>{content || placeholder}</span>
-        <button
-          onClick={() => setIsEditing(true)}
-          className="absolute -top-2 -right-2 bg-blue-500 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-        >
-          <Edit3 className="h-3 w-3" />
-        </button>
+        <Tag className={`${className} ${editMode ? 'hover:bg-blue-50 hover:outline hover:outline-2 hover:outline-blue-300 cursor-pointer transition-all' : ''}`}>
+          {displayValue}
+        </Tag>
+        {editMode && (
+          <button
+            onClick={() => setIsEditing(true)}
+            className="absolute -top-2 -right-2 bg-blue-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+          >
+            <Edit3 className="h-3 w-3" />
+          </button>
+        )}
       </div>
     );
   };
 
-  // Home page management
-  const renderHomePage = () => (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-white'}`}>
+  // Live Website Editor
+  const renderLiveEditor = () => (
+    <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-white'}`} dir={previewLanguage === 'ar' ? 'rtl' : 'ltr'}>
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-blue-900 to-blue-800 text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-                <EditableText
-                  content={getContent('hero_title', 'ForensicPro - Trusted Expertise in Civil Protection & Forensics')}
-                  onSave={(value) => updateContent('hero_title', value)}
-                  className="block"
-                  multiline
-                />
-              </h1>
-              <p className="text-xl text-blue-100 mb-8 leading-relaxed">
-                <EditableText
-                  content={getContent('hero_subtitle', 'With over 20 years of experience, we provide comprehensive forensic analysis, civil protection services, and expert consultation for legal and emergency situations.')}
-                  onSave={(value) => updateContent('hero_subtitle', value)}
-                  className="block"
-                  multiline
-                />
-              </p>
+              <EditableText
+                content={heroContent}
+                contentKey="title"
+                section="hero_content"
+                className="text-4xl md:text-5xl font-bold mb-6 leading-tight block"
+                placeholder="ForensicPro - Trusted Expertise in Civil Protection & Forensics"
+                tag="h1"
+                multiline
+              />
+              <EditableText
+                content={heroContent}
+                contentKey="subtitle"
+                section="hero_content"
+                className="text-xl text-blue-100 mb-8 leading-relaxed block"
+                placeholder="With over 20 years of experience, we provide comprehensive forensic analysis..."
+                tag="p"
+                multiline
+              />
               <div className="flex flex-col sm:flex-row gap-4">
                 <button className="bg-orange-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors text-center">
                   <EditableText
-                    content={getContent('cta_consultation', 'Book Consultation')}
-                    onSave={(value) => updateContent('cta_consultation', value)}
+                    content={heroContent}
+                    contentKey="cta1_text"
+                    section="hero_content"
+                    placeholder="Book Consultation"
                   />
                 </button>
                 <button className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-800 transition-colors text-center">
                   <EditableText
-                    content={getContent('cta_contact', 'Contact Us')}
-                    onSave={(value) => updateContent('cta_contact', value)}
+                    content={heroContent}
+                    contentKey="cta2_text"
+                    section="hero_content"
+                    placeholder="Contact Us"
                   />
                 </button>
               </div>
@@ -212,19 +270,23 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 <div className="flex items-center justify-center mb-4">
                   <Shield className="h-16 w-16 text-blue-300" />
                 </div>
-                <h3 className="text-2xl font-semibold mb-4">
-                  <EditableText
-                    content={getContent('experience_badge', '20+ Years of Excellence')}
-                    onSave={(value) => updateContent('experience_badge', value)}
-                  />
-                </h3>
-                <p className="text-blue-100">
-                  <EditableText
-                    content={getContent('experience_desc', 'Professional certifications and expert testimony in over 1,000 cases')}
-                    onSave={(value) => updateContent('experience_desc', value)}
-                    multiline
-                  />
-                </p>
+                <EditableText
+                  content={heroContent}
+                  contentKey="badge_title"
+                  section="hero_content"
+                  className="text-2xl font-semibold mb-4 block"
+                  placeholder="20+ Years of Excellence"
+                  tag="h3"
+                />
+                <EditableText
+                  content={heroContent}
+                  contentKey="badge_description"
+                  section="hero_content"
+                  className="text-blue-100 block"
+                  placeholder="Professional certifications and expert testimony in over 1,000 cases"
+                  tag="p"
+                  multiline
+                />
               </div>
             </div>
           </div>
@@ -235,38 +297,53 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              <EditableText
-                content={getContent('certifications_title', 'Professional Certifications')}
-                onSave={(value) => updateContent('certifications_title', value)}
-              />
-            </h2>
-            <p className="text-xl text-gray-600">
-              <EditableText
-                content={getContent('certifications_subtitle', 'Recognized expertise and industry credentials')}
-                onSave={(value) => updateContent('certifications_subtitle', value)}
-              />
-            </p>
+            <EditableText
+              content={heroContent}
+              contentKey="certifications_title"
+              section="hero_content"
+              className="text-3xl font-bold text-gray-900 mb-4 block"
+              placeholder="Professional Certifications"
+              tag="h2"
+            />
+            <EditableText
+              content={heroContent}
+              contentKey="certifications_subtitle"
+              section="hero_content"
+              className="text-xl text-gray-600 block"
+              placeholder="Recognized expertise and industry credentials"
+              tag="p"
+            />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {certifications.slice(0, 3).map((cert, index) => (
-              <div key={cert.id} className="bg-white p-6 rounded-lg shadow-md text-center">
+              <div key={cert.id} className="bg-white p-6 rounded-lg shadow-md text-center relative group">
                 <Award className="h-12 w-12 text-blue-800 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold mb-2">{cert.name}</h3>
                 <p className="text-gray-600">{cert.organization}</p>
+                {cert.year_obtained && (
+                  <p className="text-sm text-gray-500 mt-2">{cert.year_obtained}</p>
+                )}
                 {editMode && (
-                  <div className="mt-4 flex justify-center gap-2">
-                    <button className="bg-blue-500 text-white p-2 rounded">
-                      <Edit3 className="h-4 w-4" />
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button className="bg-blue-500 text-white p-1 rounded mr-1">
+                      <Edit3 className="h-3 w-3" />
                     </button>
-                    <button className="bg-red-500 text-white p-2 rounded">
-                      <Trash2 className="h-4 w-4" />
+                    <button className="bg-red-500 text-white p-1 rounded">
+                      <Trash2 className="h-3 w-3" />
                     </button>
                   </div>
                 )}
               </div>
             ))}
           </div>
+          {editMode && (
+            <div className="text-center mt-8">
+              <button className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 flex items-center gap-2 mx-auto">
+                <Plus className="h-4 w-4" />
+                إضافة شهادة جديدة
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -274,45 +351,113 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              <EditableText
-                content={getContent('services_title', 'Our Core Services')}
-                onSave={(value) => updateContent('services_title', value)}
-              />
-            </h2>
-            <p className="text-xl text-gray-600">
-              <EditableText
-                content={getContent('services_subtitle', 'Comprehensive expertise across multiple disciplines')}
-                onSave={(value) => updateContent('services_subtitle', value)}
-              />
-            </p>
+            <EditableText
+              content={heroContent}
+              contentKey="services_title"
+              section="hero_content"
+              className="text-3xl font-bold text-gray-900 mb-4 block"
+              placeholder="Our Core Services"
+              tag="h2"
+            />
+            <EditableText
+              content={heroContent}
+              contentKey="services_subtitle"
+              section="hero_content"
+              className="text-xl text-gray-600 block"
+              placeholder="Comprehensive expertise across multiple disciplines"
+              tag="p"
+            />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {services.slice(0, 3).map((service, index) => (
-              <div key={service.id} className="bg-white p-8 rounded-lg shadow-lg border border-gray-200 hover:shadow-xl transition-shadow">
-                <Shield className="h-12 w-12 text-blue-800 mb-4" />
-                <h3 className="text-2xl font-semibold mb-4">{service.title}</h3>
-                <p className="text-gray-600 mb-6">{service.description}</p>
-                <ul className="space-y-2 text-gray-600 mb-6">
-                  {service.features?.slice(0, 3).map((feature: string, idx: number) => (
-                    <li key={idx} className="flex items-center">
-                      <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                      <span className="text-sm">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-                {editMode && (
-                  <div className="mt-4 flex justify-center gap-2">
-                    <button className="bg-blue-500 text-white p-2 rounded">
-                      <Edit3 className="h-4 w-4" />
-                    </button>
-                    <button className="bg-red-500 text-white p-2 rounded">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
+            {/* Civil Protection Service */}
+            <div className="bg-white p-8 rounded-lg shadow-lg border border-gray-200 hover:shadow-xl transition-shadow relative group">
+              <Shield className="h-12 w-12 text-blue-800 mb-4" />
+              <h3 className="text-2xl font-semibold mb-4">Civil Protection</h3>
+              <p className="text-gray-600 mb-6">
+                Building inspection reports, fire cause analysis, emergency planning
+              </p>
+              <ul className="space-y-2 text-gray-600 mb-6">
+                <li className="flex items-center">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-sm">Building Inspection Reports</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-sm">Fire Cause Analysis</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-sm">Emergency Planning</span>
+                </li>
+              </ul>
+              {editMode && (
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button className="bg-blue-500 text-white p-1 rounded">
+                    <Edit3 className="h-3 w-3" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Forensics Service */}
+            <div className="bg-white p-8 rounded-lg shadow-lg border border-gray-200 hover:shadow-xl transition-shadow relative group">
+              <Users className="h-12 w-12 text-blue-800 mb-4" />
+              <h3 className="text-2xl font-semibold mb-4">Forensics</h3>
+              <p className="text-gray-600 mb-6">
+                Crime scene analysis, physical evidence examination, death cause determination
+              </p>
+              <ul className="space-y-2 text-gray-600 mb-6">
+                <li className="flex items-center">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-sm">Crime Scene Analysis</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-sm">Physical Evidence Examination</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-sm">Death Cause Determination</span>
+                </li>
+              </ul>
+              {editMode && (
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button className="bg-blue-500 text-white p-1 rounded">
+                    <Edit3 className="h-3 w-3" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Explosives Analysis Service */}
+            <div className="bg-white p-8 rounded-lg shadow-lg border border-gray-200 hover:shadow-xl transition-shadow relative group">
+              <Award className="h-12 w-12 text-blue-800 mb-4" />
+              <h3 className="text-2xl font-semibold mb-4">Explosives Analysis</h3>
+              <p className="text-gray-600 mb-6">
+                Components analysis, technical reports, expert testimony
+              </p>
+              <ul className="space-y-2 text-gray-600 mb-6">
+                <li className="flex items-center">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-sm">Components Analysis</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-sm">Technical Reports</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-sm">Expert Testimony</span>
+                </li>
+              </ul>
+              {editMode && (
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button className="bg-blue-500 text-white p-1 rounded">
+                    <Edit3 className="h-3 w-3" />
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </section>
@@ -321,22 +466,26 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              <EditableText
-                content={getContent('testimonials_title', 'Client Testimonials')}
-                onSave={(value) => updateContent('testimonials_title', value)}
-              />
-            </h2>
-            <p className="text-xl text-gray-600">
-              <EditableText
-                content={getContent('testimonials_subtitle', 'Trusted by legal professionals and organizations')}
-                onSave={(value) => updateContent('testimonials_subtitle', value)}
-              />
-            </p>
+            <EditableText
+              content={heroContent}
+              contentKey="testimonials_title"
+              section="hero_content"
+              className="text-3xl font-bold text-gray-900 mb-4 block"
+              placeholder="Client Testimonials"
+              tag="h2"
+            />
+            <EditableText
+              content={heroContent}
+              contentKey="testimonials_subtitle"
+              section="hero_content"
+              className="text-xl text-gray-600 block"
+              placeholder="Trusted by legal professionals and organizations"
+              tag="p"
+            />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {testimonials.slice(0, 2).map((testimonial, index) => (
-              <div key={testimonial.id} className="bg-white p-8 rounded-lg shadow-md">
+              <div key={testimonial.id} className="bg-white p-8 rounded-lg shadow-md relative group">
                 <div className="flex items-center mb-4">
                   {[...Array(testimonial.rating || 5)].map((_, i) => (
                     <Star key={i} className="h-5 w-5 text-yellow-500 fill-current" />
@@ -349,48 +498,64 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                   {testimonial.company && ` at ${testimonial.company}`}
                 </div>
                 {editMode && (
-                  <div className="mt-4 flex justify-center gap-2">
-                    <button className="bg-blue-500 text-white p-2 rounded">
-                      <Edit3 className="h-4 w-4" />
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button className="bg-blue-500 text-white p-1 rounded mr-1">
+                      <Edit3 className="h-3 w-3" />
                     </button>
-                    <button className="bg-red-500 text-white p-2 rounded">
-                      <Trash2 className="h-4 w-4" />
+                    <button className="bg-red-500 text-white p-1 rounded">
+                      <Trash2 className="h-3 w-3" />
                     </button>
                   </div>
                 )}
               </div>
             ))}
           </div>
+          {editMode && (
+            <div className="text-center mt-8">
+              <button className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 flex items-center gap-2 mx-auto">
+                <Plus className="h-4 w-4" />
+                إضافة شهادة عميل جديدة
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
       {/* CTA Section */}
       <section className="py-16 bg-blue-800 text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold mb-6">
-            <EditableText
-              content={getContent('final_cta_title', 'Ready to Get Started?')}
-              onSave={(value) => updateContent('final_cta_title', value)}
-            />
-          </h2>
-          <p className="text-xl text-blue-100 mb-8">
-            <EditableText
-              content={getContent('final_cta_subtitle', 'Contact us today for a consultation and discover how our expertise can help your case.')}
-              onSave={(value) => updateContent('final_cta_subtitle', value)}
-              multiline
-            />
-          </p>
+          <EditableText
+            content={heroContent}
+            contentKey="final_cta_title"
+            section="hero_content"
+            className="text-3xl font-bold mb-6 block"
+            placeholder="Ready to Get Started?"
+            tag="h2"
+          />
+          <EditableText
+            content={heroContent}
+            contentKey="final_cta_subtitle"
+            section="hero_content"
+            className="text-xl text-blue-100 mb-8 block"
+            placeholder="Contact us today for a consultation and discover how our expertise can help your case."
+            tag="p"
+            multiline
+          />
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button className="bg-orange-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors">
               <EditableText
-                content={getContent('final_cta_button1', 'Book Consultation')}
-                onSave={(value) => updateContent('final_cta_button1', value)}
+                content={heroContent}
+                contentKey="final_cta_button1"
+                section="hero_content"
+                placeholder="Book Consultation"
               />
             </button>
             <button className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-800 transition-colors">
               <EditableText
-                content={getContent('final_cta_button2', 'Contact Us')}
-                onSave={(value) => updateContent('final_cta_button2', value)}
+                content={heroContent}
+                contentKey="final_cta_button2"
+                section="hero_content"
+                placeholder="Contact Us"
               />
             </button>
           </div>
@@ -481,74 +646,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     </div>
   );
 
-  // Settings management
-  const renderSettingsManagement = () => (
-    <div className={`p-6 ${darkMode ? 'bg-gray-900 text-white' : 'bg-white'}`}>
-      <h2 className="text-2xl font-bold mb-6">إعدادات الموقع</h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-gray-50 rounded-lg p-6">
-          <h3 className="font-semibold mb-4 flex items-center gap-2">
-            <Phone className="h-5 w-5" />
-            معلومات التواصل
-          </h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">رقم الهاتف</label>
-              <EditableText
-                content={getContent('contact_phone', '+1 (555) 123-4567')}
-                onSave={(value) => updateContent('contact_phone', value)}
-                className="w-full p-2 border rounded"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">البريد الإلكتروني</label>
-              <EditableText
-                content={getContent('contact_email', 'info@forensicpro.com')}
-                onSave={(value) => updateContent('contact_email', value)}
-                className="w-full p-2 border rounded"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">العنوان</label>
-              <EditableText
-                content={getContent('contact_address', '123 Professional Drive, Suite 400')}
-                onSave={(value) => updateContent('contact_address', value)}
-                className="w-full p-2 border rounded"
-                multiline
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-gray-50 rounded-lg p-6">
-          <h3 className="font-semibold mb-4">إعدادات عامة</h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">اسم الموقع</label>
-              <EditableText
-                content={getContent('site_name', 'ForensicPro')}
-                onSave={(value) => updateContent('site_name', value)}
-                className="w-full p-2 border rounded"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">وصف الموقع</label>
-              <EditableText
-                content={getContent('site_description', 'Trusted expertise in civil protection and forensics')}
-                onSave={(value) => updateContent('site_description', value)}
-                className="w-full p-2 border rounded"
-                multiline
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
   const dashboardNavSections = [
-    { id: 'home', label: 'الصفحة الرئيسية', icon: Home },
+    { id: 'live-editor', label: 'المحرر المباشر', icon: Eye },
     { id: 'blog', label: 'المدونة', icon: FileText },
     { id: 'messages', label: 'الرسائل', icon: MessageSquare },
     { id: 'settings', label: 'الإعدادات', icon: Settings },
@@ -557,12 +656,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50'}`} dir="rtl">
       {/* Header */}
-      <header className={`${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm border-b`}>
+      <header className={`${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm border-b sticky top-0 z-50`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4 space-x-reverse">
               <Shield className="h-8 w-8 text-blue-600" />
-              <h1 className="text-xl font-bold">لوحة التحكم - ForensicPro</h1>
+              <h1 className="text-xl font-bold">المحرر المباشر - ForensicPro</h1>
             </div>
             
             <div className="flex items-center space-x-4 space-x-reverse">
@@ -579,13 +678,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 {editMode ? 'إيقاف التعديل' : 'تفعيل التعديل'}
               </button>
 
-              {/* Language Toggle */}
+              {/* Language Preview Toggle */}
               <button
-                onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition-colors"
+                onClick={() => setPreviewLanguage(previewLanguage === 'ar' ? 'en' : 'ar')}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors"
               >
                 <Globe className="h-4 w-4" />
-                {language === 'ar' ? 'English' : 'العربية'}
+                {previewLanguage === 'ar' ? 'English' : 'العربية'}
               </button>
 
               {/* Dark Mode Toggle */}
@@ -619,7 +718,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
       <div className="flex">
         {/* Sidebar */}
-        <aside className={`w-64 ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm min-h-screen`}>
+        <aside className={`w-64 ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm min-h-screen sticky top-16`}>
           <nav className="p-4">
             <ul className="space-y-2">
               {dashboardNavSections.map((section) => (
@@ -653,10 +752,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
           {!loading && (
             <>
-              {activeSection === 'home' && renderHomePage()}
+              {activeSection === 'live-editor' && renderLiveEditor()}
               {activeSection === 'blog' && renderBlogManagement()}
               {activeSection === 'messages' && renderMessagesManagement()}
-              {activeSection === 'settings' && renderSettingsManagement()}
             </>
           )}
         </main>
