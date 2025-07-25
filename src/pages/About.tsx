@@ -7,25 +7,34 @@ import { DatabaseService } from '../lib/supabase';
 const About = () => {
   const { language, t } = useLanguage();
   const [teamMembers, setTeamMembers] = React.useState<any[]>([]);
-  const [aboutContent, setAboutContent] = React.useState<any>({});
+  const [aboutContent, setAboutContent] = React.useState<any>({
+    mission_ar: 'تقديم تحليل جنائي دقيق وموثوق وسليم علمياً وخدمات الحماية المدنية التي تخدم العدالة وتحمي المجتمعات.',
+    mission_en: 'To provide accurate, reliable, and scientifically sound forensic analysis and civil protection services that serve justice and protect communities.',
+    team_ar: 'فريق مخصص من المهنيين المعتمدين مع خبرة واسعة في علوم الطب الشرعي والحماية المدنية وشهادة الخبراء.',
+    team_en: 'A dedicated team of certified professionals with extensive experience in forensic science, civil protection, and expert witness testimony.',
+    values_ar: 'النزاهة والدقة والصرامة العلمية توجه كل ما نقوم به. نحن ملتزمون بأعلى معايير التميز المهني.',
+    values_en: 'Integrity, accuracy, and scientific rigor guide everything we do. We are committed to the highest standards of professional excellence.',
+    history_ar: 'تأسست شركتنا على يد خبراء متخصصين في مجال الطب الشرعي والحماية المدنية، ومنذ ذلك الحين نقدم خدمات عالية الجودة للعملاء في جميع أنحاء المنطقة.',
+    history_en: 'Our company was founded by specialized experts in forensic medicine and civil protection, and since then we have been providing high-quality services to clients throughout the region.'
+  });
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
-        const [teamData, aboutData] = await Promise.all([
-          DatabaseService.getTeamMembers(),
-          DatabaseService.getContentSection('about_content')
-        ]);
+        const teamData = await DatabaseService.getTeamMembers();
         
         setTeamMembers(teamData);
         
+        // Load about content from database
+        const aboutData = await DatabaseService.getContentSection('about_content');
         if (aboutData?.content) {
           try {
-            setAboutContent(JSON.parse(aboutData.content));
-          } catch {
-            setAboutContent({});
+            const parsedContent = JSON.parse(aboutData.content);
+            setAboutContent(prev => ({ ...prev, ...parsedContent }));
+          } catch (e) {
+            console.log('Using default about content');
           }
         }
       } catch (error) {
@@ -62,21 +71,21 @@ const About = () => {
             <Target className="h-12 w-12 text-blue-800 mx-auto mb-4" />
             <h3 className="text-2xl font-semibold mb-4">{t('about.mission.title')}</h3>
             <p className="text-gray-600">
-              {t('about.mission.desc')}
+              {language === 'ar' ? aboutContent.mission_ar : aboutContent.mission_en}
             </p>
           </div>
           <div className="bg-white rounded-lg shadow-lg p-8 text-center">
             <Users className="h-12 w-12 text-blue-800 mx-auto mb-4" />
             <h3 className="text-2xl font-semibold mb-4">{t('about.team.title')}</h3>
             <p className="text-gray-600">
-              {t('about.team.desc')}
+              {language === 'ar' ? aboutContent.team_ar : aboutContent.team_en}
             </p>
           </div>
           <div className="bg-white rounded-lg shadow-lg p-8 text-center">
             <Award className="h-12 w-12 text-blue-800 mx-auto mb-4" />
             <h3 className="text-2xl font-semibold mb-4">{t('about.values.title')}</h3>
             <p className="text-gray-600">
-              {t('about.values.desc')}
+              {language === 'ar' ? aboutContent.values_ar : aboutContent.values_en}
             </p>
           </div>
         </div>
@@ -84,59 +93,10 @@ const About = () => {
         {/* Company History */}
         <div className="bg-gray-50 rounded-lg p-8 mb-16">
           <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">{t('about.history.title')}</h2>
-          <div className="space-y-6">
-            <div className="flex items-start space-x-4">
-              <div className="bg-blue-800 text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0">
-                <span className="text-sm font-bold">1</span>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg">
-                  {language === 'ar' ? '2004 - التأسيس' : '2004 - Foundation'}
-                </h3>
-                <p className="text-gray-600">
-                  {language === 'ar' ? 
-                    'تأسست على يد الدكتور جون سميث، خبير الطب الشرعي السابق في مكتب التحقيقات الفيدرالي، لتقديم خدمات التحليل الجنائي المستقل للمهنيين القانونيين.' :
-                    'Founded by Dr. John Smith, a former FBI forensic expert, to provide independent forensic analysis services to legal professionals.'
-                  }
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start space-x-4">
-              <div className="bg-blue-800 text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0">
-                <span className="text-sm font-bold">2</span>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg">2010 - Expansion</h3>
-                <p className="text-gray-600">
-                  Expanded services to include civil protection consulting and 
-                  opened our state-of-the-art laboratory facility.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start space-x-4">
-              <div className="bg-blue-800 text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0">
-                <span className="text-sm font-bold">3</span>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg">2015 - Recognition</h3>
-                <p className="text-gray-600">
-                  Received national recognition for excellence in forensic analysis 
-                  and became a preferred expert witness for major law firms.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start space-x-4">
-              <div className="bg-blue-800 text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0">
-                <span className="text-sm font-bold">4</span>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg">2020 - Innovation</h3>
-                <p className="text-gray-600">
-                  Implemented cutting-edge technology and expanded our team to 
-                  include specialists in explosives analysis and digital forensics.
-                </p>
-              </div>
-            </div>
+          <div className="text-center">
+            <p className="text-lg text-gray-700 leading-relaxed max-w-4xl mx-auto">
+              {language === 'ar' ? aboutContent.history_ar : aboutContent.history_en}
+            </p>
           </div>
         </div>
 
