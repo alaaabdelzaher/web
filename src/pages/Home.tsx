@@ -6,44 +6,52 @@ import { DatabaseService } from '../lib/supabase';
 
 const Home = () => {
   const { language, t } = useLanguage();
-  const [sections, setSections] = React.useState<any[]>([]);
+  const [homeContent, setHomeContent] = React.useState<any>({});
   const [certifications, setCertifications] = React.useState<any[]>([]);
   const [services, setServices] = React.useState<any[]>([]);
   const [testimonials, setTestimonials] = React.useState<any[]>([]);
   const [stats, setStats] = React.useState<any[]>([]);
 
   React.useEffect(() => {
-    const loadSections = async () => {
+    const loadData = async () => {
       try {
         const [
-          sectionsData,
+          homeData,
           certificationsData,
           servicesData,
           testimonialsData,
           statsData
         ] = await Promise.all([
-          DatabaseService.getContentSections(),
+          DatabaseService.getContentSection('home_content'),
           DatabaseService.getCertifications(),
           DatabaseService.getServices(),
           DatabaseService.getTestimonials(),
           DatabaseService.getStats()
         ]);
         
-        setSections(sectionsData);
+        // Parse home content
+        if (homeData?.content) {
+          try {
+            setHomeContent(JSON.parse(homeData.content));
+          } catch {
+            setHomeContent({});
+          }
+        }
+        
         setCertifications(certificationsData);
         setServices(servicesData);
         setTestimonials(testimonialsData);
         setStats(statsData);
       } catch (error) {
-        console.error('Error loading sections:', error);
+        console.error('Error loading data:', error);
       }
     };
-    loadSections();
+    loadData();
   }, []);
 
-  const getContent = (key: string, fallback: string) => {
-    const section = sections.find(s => s.section_key === key);
-    return section?.content || fallback;
+  const getHomeContent = (key: string, fallback: string) => {
+    const langKey = `${key}_${language}`;
+    return homeContent[langKey] || fallback;
   };
 
   return (
@@ -54,23 +62,23 @@ const Home = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-                {getContent('hero_title', t('home.hero.title'))}
+                {getHomeContent('hero_title', t('home.hero.title'))}
               </h1>
               <p className="text-xl text-blue-100 mb-8 leading-relaxed">
-                {getContent('hero_subtitle', t('home.hero.subtitle'))}
+                {getHomeContent('hero_subtitle', t('home.hero.subtitle'))}
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link
                   to="/contact"
                   className="bg-orange-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors text-center"
                 >
-                  {t('home.cta.consultation')}
+                  {getHomeContent('cta1_text', t('home.cta.consultation'))}
                 </Link>
                 <Link
                   to="/contact"
                   className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-800 transition-colors text-center"
                 >
-                  {t('home.cta.contact')}
+                  {getHomeContent('cta2_text', t('home.cta.contact'))}
                 </Link>
                 <Link
                   to="/services"
