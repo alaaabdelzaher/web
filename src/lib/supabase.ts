@@ -808,6 +808,22 @@ export class DatabaseService {
     }
   }
 
+  static async getServiceById(id: string) {
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching service by ID:', error);
+      return null;
+    }
+  }
+
   // Services
   static async createService(service: Partial<any>) {
     try {
