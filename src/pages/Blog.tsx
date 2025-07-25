@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, User, Tag, Search, ArrowRight } from 'lucide-react';
+import { Calendar, User, Tag, Search, ArrowRight, FileText } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { DatabaseService } from '../lib/supabase';
 
