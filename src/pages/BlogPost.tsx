@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Calendar, User, Tag, ArrowLeft, Clock, Eye } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { DatabaseService, BlogPost } from '../lib/supabase';
+import { supabase, BlogPost } from '../lib/supabase';
 
 const BlogPostDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,7 +19,7 @@ const BlogPostDetail = () => {
         setLoading(true);
         
         // تحميل المقال
-        const { data: postData, error } = await DatabaseService.supabase
+        const { data: postData, error } = await supabase
           .from('blog_posts')
           .select('*')
           .eq('id', id)
@@ -34,13 +34,13 @@ const BlogPostDetail = () => {
         setPost(postData);
 
         // تحديث عدد المشاهدات
-        await DatabaseService.supabase
+        await supabase
           .from('blog_posts')
           .update({ views: (postData.views || 0) + 1 })
           .eq('id', id);
 
         // تحميل المقالات ذات الصلة
-        const { data: relatedData } = await DatabaseService.supabase
+        const { data: relatedData } = await supabase
           .from('blog_posts')
           .select('*')
           .eq('status', 'published')
