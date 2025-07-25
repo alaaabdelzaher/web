@@ -50,21 +50,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         teamData,
         aboutData
       ] = await Promise.all([
-        DatabaseService.getContentSection('home_content'),
-        DatabaseService.getCertifications(),
-        DatabaseService.getServices(),
-        DatabaseService.getTestimonials(),
-        DatabaseService.getStats(),
-        DatabaseService.getTeamMembers(),
-        DatabaseService.getContentSection('about_content')
-      ]);
-      
-      const [servicesData, postsData, certsData, teamData, messagesData] = await Promise.all([
         DatabaseService.getServices(),
         DatabaseService.getBlogPosts(),
         DatabaseService.getCertifications(),
         DatabaseService.getTeamMembers(),
-        DatabaseService.getContactMessages()
+        DatabaseService.getContactMessages(),
         DatabaseService.getContentSection('about_content')
       ]);
 
@@ -91,19 +81,19 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
   const showMessage = (text: string, type: 'success' | 'error' = 'success') => {
     setMessage(text);
-  }, [refreshTrigger]);
+    setTimeout(() => setMessage(''), 3000);
+  };
 
   // Auto refresh every 30 seconds to check for new messages
   useEffect(() => {
     const interval = setInterval(() => {
-      if (activeTab === 'messages') {
+      if (activeSection === 'messages') {
         setRefreshTrigger(prev => prev + 1);
       }
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [activeTab]);
-  };
+  }, [activeSection]);
 
   // Image upload handler
   const handleImageUpload = async (file: File) => {
@@ -1248,12 +1238,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             <div className="flex items-center space-x-4 space-x-reverse">
               <Shield className="h-8 w-8 text-blue-600" />
               <h1 className="text-xl font-bold">لوحة تحكم ForensicPro</h1>
-              <button
-                onClick={() => setRefreshTrigger(prev => prev + 1)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                تحديث الرسائل
-              </button>
             </div>
             
             <div className="flex items-center space-x-4 space-x-reverse">
@@ -1280,79 +1264,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2"
               >
                 <LogOut className="h-4 w-4" />
-            <div className="grid gap-4">
-              {contactMessages.length === 0 ? (
-                <div className="bg-white rounded-lg shadow p-6 text-center">
-                  <p className="text-gray-600">لا توجد رسائل حالياً</p>
-                </div>
-              ) : (
-                contactMessages.map((msg) => (
-                  <div key={msg.id} className="bg-white rounded-lg shadow p-6">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className="text-lg font-semibold">{msg.name}</h3>
-                        <p className="text-gray-600">{msg.email}</p>
-                        {msg.phone && <p className="text-gray-600">{msg.phone}</p>}
-                      </div>
-                      <div className="text-left">
-                        <span className={`px-2 py-1 rounded-full text-xs ${
-                          msg.status === 'new' ? 'bg-green-100 text-green-800' :
-                          msg.status === 'read' ? 'bg-blue-100 text-blue-800' :
-                          msg.status === 'replied' ? 'bg-purple-100 text-purple-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {msg.status === 'new' ? 'جديد' :
-                           msg.status === 'read' ? 'مقروء' :
-                           msg.status === 'replied' ? 'تم الرد' : 'مؤرشف'}
-                        </span>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {new Date(msg.created_at).toLocaleDateString('ar-SA')}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="mb-4">
-                      <h4 className="font-medium mb-2">الموضوع: {msg.subject}</h4>
-                      <p className="text-gray-700 bg-gray-50 p-3 rounded">{msg.message}</p>
-                    </div>
-                    
-                    <div className="flex gap-2">
-                      <button
-                        onClick={async () => {
-                          try {
-                            await DatabaseService.updateContactMessageStatus(msg.id, 'read');
-                            setRefreshTrigger(prev => prev + 1);
-                          } catch (error) {
-                            console.error('Error updating message status:', error);
-                          }
-                        }}
-                        className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors"
-                      >
-                        تحديد كمقروء
-                      </button>
-                      <button
-                        onClick={async () => {
-                          try {
-                            await DatabaseService.updateContactMessageStatus(msg.id, 'replied');
-                            setRefreshTrigger(prev => prev + 1);
-                          } catch (error) {
-                            console.error('Error updating message status:', error);
-                          }
-                        }}
-                        className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 transition-colors"
-                      >
-                        تم الرد
-                      </button>
-                      <a
-                        href={`mailto:${msg.email}?subject=Re: ${msg.subject}`}
-                        className="bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700 transition-colors"
-                      >
-                        رد بالإيميل
-                      </a>
-                    </div>
-                  </div>
-                ))
-              )}
+                تسجيل الخروج
+              </button>
             </div>
           </div>
         </div>
