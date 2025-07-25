@@ -287,11 +287,16 @@ const Home = () => {
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {displayCertifications.filter(cert => cert.is_featured).map((cert) => (
+            {(certifications.length > 0 ? certifications : defaultCertifications)
+              .filter(cert => cert.is_featured)
+              .map((cert) => (
               <div key={cert.id} className="bg-white rounded-lg shadow-lg p-8 text-center">
                 <Award className="h-16 w-16 text-blue-800 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold mb-2">{cert.name}</h3>
                 <p className="text-gray-600 mb-2">{cert.organization}</p>
+                {cert.description && (
+                  <p className="text-sm text-gray-500 mb-2">{cert.description}</p>
+                )}
                 {cert.year_obtained && (
                   <p className="text-sm text-gray-500">{cert.year_obtained}</p>
                 )}

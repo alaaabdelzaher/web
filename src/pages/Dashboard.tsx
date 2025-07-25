@@ -639,128 +639,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     );
   };
 
-  // Certifications Management Functions
-  const handleCreateCertification = async (certificationData: any) => {
-    try {
-      const newCertification = await DatabaseService.createCertification(certificationData);
-      setCertifications([...certifications, newCertification]);
-      setShowCertificationForm(false);
-      alert('تم إنشاء الشهادة بنجاح!');
-    } catch (error) {
-      console.error('Error creating certification:', error);
-      alert('حدث خطأ في إنشاء الشهادة');
-    }
-  };
-
-  const handleUpdateCertification = async (id: string, updates: any) => {
-    try {
-      const updatedCertification = await DatabaseService.updateCertification(id, updates);
-      setCertifications(certifications.map(cert => 
-        cert.id === id ? updatedCertification : cert
-      ));
-      setEditingCertification(null);
-      alert('تم تحديث الشهادة بنجاح!');
-    } catch (error) {
-      console.error('Error updating certification:', error);
-      alert('حدث خطأ في تحديث الشهادة');
-    }
-  };
-
-  const handleDeleteCertification = async (id: string) => {
-    if (confirm('هل أنت متأكد من حذف هذه الشهادة؟')) {
-      try {
-        await DatabaseService.deleteCertification(id);
-        setCertifications(certifications.filter(cert => cert.id !== id));
-        alert('تم حذف الشهادة بنجاح!');
-      } catch (error) {
-        console.error('Error deleting certification:', error);
-        alert('حدث خطأ في حذف الشهادة');
-      }
-    }
-  };
-
-  const renderCertificationsTab = () => (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">إدارة الشهادات المهنية</h2>
-        <button
-          onClick={() => setShowCertificationForm(true)}
-          className="bg-blue-800 text-white px-4 py-2 rounded-lg hover:bg-blue-900 transition-colors"
-        >
-          إضافة شهادة جديدة
-        </button>
-      </div>
-
-      {/* Certification Form */}
-      {(showCertificationForm || editingCertification) && (
-        <div className="bg-white rounded-lg shadow-lg p-6 border">
-          <h3 className="text-xl font-semibold mb-4">
-            {editingCertification ? 'تعديل الشهادة' : 'إضافة شهادة جديدة'}
-          </h3>
-          <CertificationForm
-            certification={editingCertification}
-            onSubmit={editingCertification ? 
-              (data) => handleUpdateCertification(editingCertification.id, data) :
-              handleCreateCertification
-            }
-            onCancel={() => {
-              setShowCertificationForm(false);
-              setEditingCertification(null);
-            }}
-          />
-        </div>
-      )}
-
-      {/* Certifications List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {certifications.map((certification) => (
-          <div key={certification.id} className="bg-white rounded-lg shadow-lg p-6">
-            <div className="flex justify-between items-start mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">{certification.name}</h3>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => setEditingCertification(certification)}
-                  className="text-blue-600 hover:text-blue-800 text-sm"
-                >
-                  تعديل
-                </button>
-                <button
-                  onClick={() => handleDeleteCertification(certification.id)}
-                  className="text-red-600 hover:text-red-800 text-sm"
-                >
-                  حذف
-                </button>
-              </div>
-            </div>
-            
-            <p className="text-gray-600 mb-2">{certification.organization}</p>
-            {certification.description && (
-              <p className="text-gray-500 text-sm mb-2">{certification.description}</p>
-            )}
-            {certification.year_obtained && (
-              <p className="text-gray-500 text-sm mb-2">السنة: {certification.year_obtained}</p>
-            )}
-            <div className="flex items-center justify-between">
-              <span className={`px-2 py-1 rounded-full text-xs ${
-                certification.is_featured ? 
-                'bg-green-100 text-green-800' : 
-                'bg-gray-100 text-gray-800'
-              }`}>
-                {certification.is_featured ? 'مميزة' : 'عادية'}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {certifications.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-500">لا توجد شهادات مهنية حالياً</p>
-        </div>
-      )}
-    </div>
-  );
-
   // Services Management
   const renderServicesManagement = () => (
     <div className="p-6">
@@ -2631,6 +2509,128 @@ const HomepageManagement = ({ homepageContent, onUpdate }: { homepageContent: an
         </div>
       </div>
     </div>
+  );
+};
+
+// Certification Form Component
+const CertificationForm: React.FC<{
+  certification?: any;
+  onSubmit: (data: any) => void;
+  onCancel: () => void;
+}> = ({ certification, onSubmit, onCancel }) => {
+  const [formData, setFormData] = useState({
+    name: certification?.name || '',
+    description: certification?.description || '',
+    organization: certification?.organization || '',
+    year_obtained: certification?.year_obtained || new Date().getFullYear(),
+    is_featured: certification?.is_featured || false
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name || !formData.organization) {
+      alert('يرجى ملء جميع الحقول المطلوبة');
+      return;
+    }
+    onSubmit(formData);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : 
+              type === 'number' ? parseInt(value) || 0 : value
+    }));
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          اسم الشهادة *
+        </label>
+        <input
+          type="text"
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          المؤسسة المانحة *
+        </label>
+        <input
+          type="text"
+          name="organization"
+          value={formData.organization}
+          onChange={handleChange}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          الوصف
+        </label>
+        <textarea
+          name="description"
+          value={formData.description}
+          onChange={handleChange}
+          rows={3}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          سنة الحصول على الشهادة
+        </label>
+        <input
+          type="number"
+          name="year_obtained"
+          value={formData.year_obtained}
+          onChange={handleChange}
+          min="1900"
+          max={new Date().getFullYear()}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          name="is_featured"
+          checked={formData.is_featured}
+          onChange={handleChange}
+          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+        />
+        <label className="mr-2 block text-sm text-gray-900">
+          شهادة مميزة (تظهر في الصفحة الرئيسية)
+        </label>
+      </div>
+
+      <div className="flex space-x-4 pt-4">
+        <button
+          type="submit"
+          className="bg-blue-800 text-white px-6 py-2 rounded-lg hover:bg-blue-900 transition-colors"
+        >
+          {certification ? 'تحديث' : 'إضافة'}
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors"
+        >
+          إلغاء
+        </button>
+      </div>
+    </form>
   );
 };
 
