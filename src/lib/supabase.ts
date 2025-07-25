@@ -681,6 +681,88 @@ export class DatabaseService {
     }
   }
 
+  // Stats
+  static async getStats() {
+    try {
+      const { data, error } = await supabase
+        .from('stats')
+        .select('*')
+        .order('stat_name');
+      
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+      return [];
+    }
+  }
+
+  // Services
+  static async getServices() {
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at');
+      
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching services:', error);
+      return [];
+    }
+  }
+
+  // Team Members
+  static async getTeamMembers() {
+    try {
+      const { data, error } = await supabase
+        .from('team_members')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at');
+      
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching team members:', error);
+      return [];
+    }
+  }
+
+  // Testimonials
+  static async getTestimonials() {
+    try {
+      const { data, error } = await supabase
+        .from('testimonials')
+        .select('*')
+        .order('created_at');
+      
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching testimonials:', error);
+      return [];
+    }
+  }
+
+  // Certifications
+  static async getCertifications() {
+    try {
+      const { data, error } = await supabase
+        .from('certifications')
+        .select('*')
+        .order('created_at');
+      
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching certifications:', error);
+      return [];
+    }
+  }
+
   // Analytics
   static async recordAnalytics(metricName: string, value: number, additionalData?: any) {
     try {
