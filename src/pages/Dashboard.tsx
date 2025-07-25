@@ -2189,4 +2189,324 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   );
 };
 
+// Homepage Management Component
+const HomepageManagement = ({ homepageContent, onUpdate }: { homepageContent: any, onUpdate: () => void }) => {
+  const { language } = useLanguage();
+  const [saving, setSaving] = useState(false);
+  const [sections, setSections] = useState<any>({});
+
+  useEffect(() => {
+    // تحويل البيانات من قاعدة البيانات إلى كائن منظم
+    const organizedSections: any = {};
+    homepageContent.forEach((section: any) => {
+      try {
+        organizedSections[section.section_key] = JSON.parse(section.content);
+      } catch {
+        organizedSections[section.section_key] = { ar: '', en: '' };
+      }
+    });
+    setSections(organizedSections);
+  }, [homepageContent]);
+
+  const updateSection = async (sectionKey: string, content: any) => {
+    try {
+      setSaving(true);
+      await DatabaseService.updateHomepageSection(sectionKey, content);
+      setSections(prev => ({ ...prev, [sectionKey]: content }));
+      onUpdate();
+    } catch (error) {
+      console.error('Error updating homepage section:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleInputChange = (sectionKey: string, field: string, value: string) => {
+    const updatedContent = {
+      ...sections[sectionKey],
+      [field]: value
+    };
+    setSections(prev => ({ ...prev, [sectionKey]: updatedContent }));
+    updateSection(sectionKey, updatedContent);
+  };
+
+  return (
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-900">
+          {language === 'ar' ? 'إدارة الصفحة الرئيسية' : 'Homepage Management'}
+        </h2>
+        {saving && (
+          <div className="flex items-center text-blue-600">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+            {language === 'ar' ? 'جاري الحفظ...' : 'Saving...'}
+          </div>
+        )}
+      </div>
+
+      {/* Hero Section */}
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <h3 className="text-xl font-semibold mb-4 text-blue-800">
+          {language === 'ar' ? 'القسم الرئيسي (Hero Section)' : 'Hero Section'}
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'ar' ? 'العنوان الرئيسي (عربي)' : 'Main Title (Arabic)'}
+            </label>
+            <input
+              type="text"
+              value={sections.homepage_hero?.title_ar || ''}
+              onChange={(e) => handleInputChange('homepage_hero', 'title_ar', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'ar' ? 'العنوان الرئيسي (إنجليزي)' : 'Main Title (English)'}
+            </label>
+            <input
+              type="text"
+              value={sections.homepage_hero?.title_en || ''}
+              onChange={(e) => handleInputChange('homepage_hero', 'title_en', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'ar' ? 'الوصف (عربي)' : 'Description (Arabic)'}
+            </label>
+            <textarea
+              value={sections.homepage_hero?.subtitle_ar || ''}
+              onChange={(e) => handleInputChange('homepage_hero', 'subtitle_ar', e.target.value)}
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'ar' ? 'الوصف (إنجليزي)' : 'Description (English)'}
+            </label>
+            <textarea
+              value={sections.homepage_hero?.subtitle_en || ''}
+              onChange={(e) => handleInputChange('homepage_hero', 'subtitle_en', e.target.value)}
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Certifications Section */}
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <h3 className="text-xl font-semibold mb-4 text-blue-800">
+          {language === 'ar' ? 'قسم الشهادات المهنية' : 'Certifications Section'}
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'ar' ? 'العنوان (عربي)' : 'Title (Arabic)'}
+            </label>
+            <input
+              type="text"
+              value={sections.homepage_certifications?.title_ar || ''}
+              onChange={(e) => handleInputChange('homepage_certifications', 'title_ar', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'ar' ? 'العنوان (إنجليزي)' : 'Title (English)'}
+            </label>
+            <input
+              type="text"
+              value={sections.homepage_certifications?.title_en || ''}
+              onChange={(e) => handleInputChange('homepage_certifications', 'title_en', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'ar' ? 'الوصف (عربي)' : 'Description (Arabic)'}
+            </label>
+            <textarea
+              value={sections.homepage_certifications?.subtitle_ar || ''}
+              onChange={(e) => handleInputChange('homepage_certifications', 'subtitle_ar', e.target.value)}
+              rows={2}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'ar' ? 'الوصف (إنجليزي)' : 'Description (English)'}
+            </label>
+            <textarea
+              value={sections.homepage_certifications?.subtitle_en || ''}
+              onChange={(e) => handleInputChange('homepage_certifications', 'subtitle_en', e.target.value)}
+              rows={2}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Services Section */}
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <h3 className="text-xl font-semibold mb-4 text-blue-800">
+          {language === 'ar' ? 'قسم الخدمات الأساسية' : 'Services Section'}
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'ar' ? 'العنوان (عربي)' : 'Title (Arabic)'}
+            </label>
+            <input
+              type="text"
+              value={sections.homepage_services?.title_ar || ''}
+              onChange={(e) => handleInputChange('homepage_services', 'title_ar', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'ar' ? 'العنوان (إنجليزي)' : 'Title (English)'}
+            </label>
+            <input
+              type="text"
+              value={sections.homepage_services?.title_en || ''}
+              onChange={(e) => handleInputChange('homepage_services', 'title_en', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'ar' ? 'الوصف (عربي)' : 'Description (Arabic)'}
+            </label>
+            <textarea
+              value={sections.homepage_services?.subtitle_ar || ''}
+              onChange={(e) => handleInputChange('homepage_services', 'subtitle_ar', e.target.value)}
+              rows={2}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'ar' ? 'الوصف (إنجليزي)' : 'Description (English)'}
+            </label>
+            <textarea
+              value={sections.homepage_services?.subtitle_en || ''}
+              onChange={(e) => handleInputChange('homepage_services', 'subtitle_en', e.target.value)}
+              rows={2}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+      {/* Testimonials Section */}
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <h3 className="text-xl font-semibold mb-4 text-blue-800">
+          {language === 'ar' ? 'قسم شهادات العملاء' : 'Testimonials Section'}
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'ar' ? 'العنوان (عربي)' : 'Title (Arabic)'}
+            </label>
+            <input
+              type="text"
+              value={sections.homepage_testimonials?.title_ar || ''}
+              onChange={(e) => handleInputChange('homepage_testimonials', 'title_ar', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'ar' ? 'العنوان (إنجليزي)' : 'Title (English)'}
+            </label>
+            <input
+              type="text"
+              value={sections.homepage_testimonials?.title_en || ''}
+              onChange={(e) => handleInputChange('homepage_testimonials', 'title_en', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'ar' ? 'الوصف (عربي)' : 'Description (Arabic)'}
+            </label>
+            <textarea
+              value={sections.homepage_testimonials?.subtitle_ar || ''}
+              onChange={(e) => handleInputChange('homepage_testimonials', 'subtitle_ar', e.target.value)}
+              rows={2}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'ar' ? 'الوصف (إنجليزي)' : 'Description (English)'}
+            </label>
+            <textarea
+              value={sections.homepage_testimonials?.subtitle_en || ''}
+              onChange={(e) => handleInputChange('homepage_testimonials', 'subtitle_en', e.target.value)}
+              rows={2}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+      </div>
+        </div>
+      {/* CTA Section */}
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <h3 className="text-xl font-semibold mb-4 text-blue-800">
+          {language === 'ar' ? 'قسم الدعوة النهائية للعمل' : 'Final CTA Section'}
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'ar' ? 'العنوان (عربي)' : 'Title (Arabic)'}
+            </label>
+            <input
+              type="text"
+              value={sections.homepage_cta?.title_ar || ''}
+              onChange={(e) => handleInputChange('homepage_cta', 'title_ar', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'ar' ? 'العنوان (إنجليزي)' : 'Title (English)'}
+            </label>
+            <input
+              type="text"
+              value={sections.homepage_cta?.title_en || ''}
+              onChange={(e) => handleInputChange('homepage_cta', 'title_en', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'ar' ? 'الوصف (عربي)' : 'Description (Arabic)'}
+            </label>
+            <textarea
+              value={sections.homepage_cta?.subtitle_ar || ''}
+              onChange={(e) => handleInputChange('homepage_cta', 'subtitle_ar', e.target.value)}
+              rows={2}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'ar' ? 'الوصف (إنجليزي)' : 'Description (English)'}
+            </label>
+            <textarea
+              value={sections.homepage_cta?.subtitle_en || ''}
+              onChange={(e) => handleInputChange('homepage_cta', 'subtitle_en', e.target.value)}
+              rows={2}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+      </div>
 export default Dashboard;
