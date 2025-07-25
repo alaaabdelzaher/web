@@ -14,6 +14,7 @@ const Forensics = () => {
       try {
         setLoading(true);
         const content = await DatabaseService.getServicePageContent('forensics');
+        console.log('Loaded forensics content:', content);
         setPageContent(content);
       } catch (error) {
         console.error('Error loading page content:', error);
@@ -26,6 +27,7 @@ const Forensics = () => {
 
   const getContentByKey = (key: string) => {
     const content = pageContent.find(item => item.section_key === key);
+    console.log(`Looking for key: ${key}, found:`, content);
     if (!content) return null;
     return {
       title: language === 'ar' ? content.section_title_ar : content.section_title_en,
@@ -48,7 +50,7 @@ const Forensics = () => {
         <div className="text-center mb-16">
           <Users className="h-16 w-16 text-blue-800 mx-auto mb-4" />
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            {language === 'ar' ? 'خدمات الطب الشرعي' : 'Forensic Services'}
+            {getContentByKey('hero')?.title || (language === 'ar' ? 'خدمات الطب الشرعي' : 'Forensic Services')}
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             {getContentByKey('hero')?.content || (language === 'ar' ? 
@@ -58,96 +60,158 @@ const Forensics = () => {
           </p>
         </div>
 
+        {/* Dynamic Content Sections */}
+        {pageContent
+          .filter(section => section.section_key !== 'hero')
+          .sort((a, b) => a.section_order - b.section_order)
+          .map((section, index) => (
+            <div key={section.id} className="mb-16">
+              <div className="bg-white rounded-lg shadow-lg p-8">
+                <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
+                  {language === 'ar' ? section.section_title_ar : section.section_title_en}
+                </h2>
+                <div className="prose prose-lg max-w-none">
+                  <div 
+                    className="text-gray-600 leading-relaxed"
+                    style={{ whiteSpace: 'pre-wrap' }}
+                  >
+                    {language === 'ar' ? section.content_ar : section.content_en}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+
         {/* Services Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
           <div className="bg-white rounded-lg shadow-lg p-8">
             <Search className="h-12 w-12 text-blue-800 mb-4" />
-            <h3 className="text-2xl font-semibold mb-4">Crime Scene Analysis</h3>
+            <h3 className="text-2xl font-semibold mb-4">
+              {language === 'ar' ? 'تحليل مسرح الجريمة' : 'Crime Scene Analysis'}
+            </h3>
             <p className="text-gray-600 mb-6">
-              Systematic investigation and documentation of crime scenes using scientific methods 
-              and advanced forensic techniques.
+              {language === 'ar' ? 
+                'تحقيق منهجي وتوثيق مسارح الجريمة باستخدام الطرق العلمية وتقنيات الطب الشرعي المتقدمة.' :
+                'Systematic investigation and documentation of crime scenes using scientific methods and advanced forensic techniques.'
+              }
             </p>
             <ul className="space-y-2">
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">Scene documentation and photography</span>
+                <span className="text-sm">
+                  {language === 'ar' ? 'توثيق وتصوير المسرح' : 'Scene documentation and photography'}
+                </span>
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">Evidence collection and preservation</span>
+                <span className="text-sm">
+                  {language === 'ar' ? 'جمع وحفظ الأدلة' : 'Evidence collection and preservation'}
+                </span>
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">Pattern analysis and reconstruction</span>
+                <span className="text-sm">
+                  {language === 'ar' ? 'تحليل الأنماط وإعادة البناء' : 'Pattern analysis and reconstruction'}
+                </span>
               </li>
             </ul>
           </div>
 
           <div className="bg-white rounded-lg shadow-lg p-8">
             <FileText className="h-12 w-12 text-blue-800 mb-4" />
-            <h3 className="text-2xl font-semibold mb-4">Physical Evidence Examination</h3>
+            <h3 className="text-2xl font-semibold mb-4">
+              {language === 'ar' ? 'فحص الأدلة المادية' : 'Physical Evidence Examination'}
+            </h3>
             <p className="text-gray-600 mb-6">
-              Laboratory analysis of physical materials and evidence using state-of-the-art 
-              equipment and scientific methodologies.
+              {language === 'ar' ? 
+                'تحليل مختبري للمواد المادية والأدلة باستخدام معدات حديثة ومنهجيات علمية.' :
+                'Laboratory analysis of physical materials and evidence using state-of-the-art equipment and scientific methodologies.'
+              }
             </p>
             <ul className="space-y-2">
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">Microscopic analysis</span>
+                <span className="text-sm">
+                  {language === 'ar' ? 'التحليل المجهري' : 'Microscopic analysis'}
+                </span>
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">Chemical composition testing</span>
+                <span className="text-sm">
+                  {language === 'ar' ? 'اختبار التركيب الكيميائي' : 'Chemical composition testing'}
+                </span>
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">DNA and biological evidence</span>
+                <span className="text-sm">
+                  {language === 'ar' ? 'الحمض النووي والأدلة البيولوجية' : 'DNA and biological evidence'}
+                </span>
               </li>
             </ul>
           </div>
 
           <div className="bg-white rounded-lg shadow-lg p-8">
             <Shield className="h-12 w-12 text-blue-800 mb-4" />
-            <h3 className="text-2xl font-semibold mb-4">Death Cause Determination</h3>
+            <h3 className="text-2xl font-semibold mb-4">
+              {language === 'ar' ? 'تحديد سبب الوفاة' : 'Death Cause Determination'}
+            </h3>
             <p className="text-gray-600 mb-6">
-              Expert analysis of mortality factors and circumstances to determine cause and 
-              manner of death for legal proceedings.
+              {language === 'ar' ? 
+                'تحليل خبير لعوامل وظروف الوفاة لتحديد سبب وطريقة الوفاة للإجراءات القانونية.' :
+                'Expert analysis of mortality factors and circumstances to determine cause and manner of death for legal proceedings.'
+              }
             </p>
             <ul className="space-y-2">
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">Autopsy consultation</span>
+                <span className="text-sm">
+                  {language === 'ar' ? 'استشارة التشريح' : 'Autopsy consultation'}
+                </span>
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">Toxicology analysis</span>
+                <span className="text-sm">
+                  {language === 'ar' ? 'تحليل السموم' : 'Toxicology analysis'}
+                </span>
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">Injury pattern assessment</span>
+                <span className="text-sm">
+                  {language === 'ar' ? 'تقييم أنماط الإصابة' : 'Injury pattern assessment'}
+                </span>
               </li>
             </ul>
           </div>
 
           <div className="bg-white rounded-lg shadow-lg p-8">
             <FileText className="h-12 w-12 text-blue-800 mb-4" />
-            <h3 className="text-2xl font-semibold mb-4">Forgery Investigation</h3>
+            <h3 className="text-2xl font-semibold mb-4">
+              {language === 'ar' ? 'تحقيق التزوير' : 'Forgery Investigation'}
+            </h3>
             <p className="text-gray-600 mb-6">
-              Document and signature authenticity analysis using advanced techniques to 
-              detect forgeries and alterations.
+              {language === 'ar' ? 
+                'تحليل أصالة الوثائق والتوقيعات باستخدام تقنيات متقدمة لاكتشاف التزوير والتعديلات.' :
+                'Document and signature authenticity analysis using advanced techniques to detect forgeries and alterations.'
+              }
             </p>
             <ul className="space-y-2">
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">Handwriting analysis</span>
+                <span className="text-sm">
+                  {language === 'ar' ? 'تحليل خط اليد' : 'Handwriting analysis'}
+                </span>
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">Document examination</span>
+                <span className="text-sm">
+                  {language === 'ar' ? 'فحص الوثائق' : 'Document examination'}
+                </span>
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">Ink and paper analysis</span>
+                <span className="text-sm">
+                  {language === 'ar' ? 'تحليل الحبر والورق' : 'Ink and paper analysis'}
+                </span>
               </li>
             </ul>
           </div>
@@ -232,22 +296,27 @@ const Forensics = () => {
 
         {/* CTA Section */}
         <div className="bg-blue-800 text-white rounded-lg p-8 text-center">
-          <h2 className="text-3xl font-bold mb-4">Need Forensic Analysis?</h2>
+          <h2 className="text-3xl font-bold mb-4">
+            {language === 'ar' ? 'تحتاج تحليل جنائي؟' : 'Need Forensic Analysis?'}
+          </h2>
           <p className="text-xl text-blue-100 mb-6">
-            Contact us today to discuss your forensic needs and get expert consultation.
+            {language === 'ar' ? 
+              'اتصل بنا اليوم لمناقشة احتياجاتك الجنائية والحصول على استشارة خبيرة.' :
+              'Contact us today to discuss your forensic needs and get expert consultation.'
+            }
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/contact"
               className="bg-orange-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors"
             >
-              Book Consultation
+              {language === 'ar' ? 'احجز استشارة' : 'Book Consultation'}
             </Link>
             <Link
               to="/contact"
               className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-800 transition-colors"
             >
-              Contact Us
+              {language === 'ar' ? 'اتصل بنا' : 'Contact Us'}
             </Link>
           </div>
         </div>

@@ -14,6 +14,7 @@ const ExplosivesAnalysis = () => {
       try {
         setLoading(true);
         const content = await DatabaseService.getServicePageContent('explosives-analysis');
+        console.log('Loaded explosives analysis content:', content);
         setPageContent(content);
       } catch (error) {
         console.error('Error loading page content:', error);
@@ -26,6 +27,7 @@ const ExplosivesAnalysis = () => {
 
   const getContentByKey = (key: string) => {
     const content = pageContent.find(item => item.section_key === key);
+    console.log(`Looking for key: ${key}, found:`, content);
     if (!content) return null;
     return {
       title: language === 'ar' ? content.section_title_ar : content.section_title_en,
@@ -48,7 +50,7 @@ const ExplosivesAnalysis = () => {
         <div className="text-center mb-16">
           <Award className="h-16 w-16 text-blue-800 mx-auto mb-4" />
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            {language === 'ar' ? 'تحليل المتفجرات' : 'Explosives Analysis'}
+            {getContentByKey('hero')?.title || (language === 'ar' ? 'تحليل المتفجرات' : 'Explosives Analysis')}
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             {getContentByKey('hero')?.content || (language === 'ar' ? 
@@ -58,96 +60,158 @@ const ExplosivesAnalysis = () => {
           </p>
         </div>
 
+        {/* Dynamic Content Sections */}
+        {pageContent
+          .filter(section => section.section_key !== 'hero')
+          .sort((a, b) => a.section_order - b.section_order)
+          .map((section, index) => (
+            <div key={section.id} className="mb-16">
+              <div className="bg-white rounded-lg shadow-lg p-8">
+                <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
+                  {language === 'ar' ? section.section_title_ar : section.section_title_en}
+                </h2>
+                <div className="prose prose-lg max-w-none">
+                  <div 
+                    className="text-gray-600 leading-relaxed"
+                    style={{ whiteSpace: 'pre-wrap' }}
+                  >
+                    {language === 'ar' ? section.content_ar : section.content_en}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+
         {/* Services Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
           <div className="bg-white rounded-lg shadow-lg p-8">
             <Search className="h-12 w-12 text-blue-800 mb-4" />
-            <h3 className="text-2xl font-semibold mb-4">Components Analysis</h3>
+            <h3 className="text-2xl font-semibold mb-4">
+              {language === 'ar' ? 'تحليل المكونات' : 'Components Analysis'}
+            </h3>
             <p className="text-gray-600 mb-6">
-              Detailed examination of explosive materials, devices, and residues using 
-              advanced analytical techniques and specialized equipment.
+              {language === 'ar' ? 
+                'فحص مفصل للمواد المتفجرة والأجهزة والبقايا باستخدام تقنيات تحليلية متقدمة ومعدات متخصصة.' :
+                'Detailed examination of explosive materials, devices, and residues using advanced analytical techniques and specialized equipment.'
+              }
             </p>
             <ul className="space-y-2">
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">Chemical composition identification</span>
+                <span className="text-sm">
+                  {language === 'ar' ? 'تحديد التركيب الكيميائي' : 'Chemical composition identification'}
+                </span>
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">Explosive residue analysis</span>
+                <span className="text-sm">
+                  {language === 'ar' ? 'تحليل بقايا المتفجرات' : 'Explosive residue analysis'}
+                </span>
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">Device reconstruction</span>
+                <span className="text-sm">
+                  {language === 'ar' ? 'إعادة بناء الجهاز' : 'Device reconstruction'}
+                </span>
               </li>
             </ul>
           </div>
 
           <div className="bg-white rounded-lg shadow-lg p-8">
             <FileText className="h-12 w-12 text-blue-800 mb-4" />
-            <h3 className="text-2xl font-semibold mb-4">Technical Reports</h3>
+            <h3 className="text-2xl font-semibold mb-4">
+              {language === 'ar' ? 'التقارير الفنية' : 'Technical Reports'}
+            </h3>
             <p className="text-gray-600 mb-6">
-              Comprehensive documentation and findings presented in detailed technical 
-              reports suitable for legal proceedings and investigations.
+              {language === 'ar' ? 
+                'توثيق شامل ونتائج مقدمة في تقارير فنية مفصلة مناسبة للإجراءات القانونية والتحقيقات.' :
+                'Comprehensive documentation and findings presented in detailed technical reports suitable for legal proceedings and investigations.'
+              }
             </p>
             <ul className="space-y-2">
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">Detailed analytical findings</span>
+                <span className="text-sm">
+                  {language === 'ar' ? 'نتائج تحليلية مفصلة' : 'Detailed analytical findings'}
+                </span>
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">Scientific methodology documentation</span>
+                <span className="text-sm">
+                  {language === 'ar' ? 'توثيق المنهجية العلمية' : 'Scientific methodology documentation'}
+                </span>
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">Court-admissible evidence</span>
+                <span className="text-sm">
+                  {language === 'ar' ? 'أدلة مقبولة في المحكمة' : 'Court-admissible evidence'}
+                </span>
               </li>
             </ul>
           </div>
 
           <div className="bg-white rounded-lg shadow-lg p-8">
             <Shield className="h-12 w-12 text-blue-800 mb-4" />
-            <h3 className="text-2xl font-semibold mb-4">Expert Testimony</h3>
+            <h3 className="text-2xl font-semibold mb-4">
+              {language === 'ar' ? 'الشهادة الخبيرة' : 'Expert Testimony'}
+            </h3>
             <p className="text-gray-600 mb-6">
-              Court-qualified expert witness services providing clear, professional 
-              testimony on explosives-related matters.
+              {language === 'ar' ? 
+                'خدمات شاهد خبير مؤهل للمحكمة تقدم شهادة واضحة ومهنية في المسائل المتعلقة بالمتفجرات.' :
+                'Court-qualified expert witness services providing clear, professional testimony on explosives-related matters.'
+              }
             </p>
             <ul className="space-y-2">
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">Courtroom testimony</span>
+                <span className="text-sm">
+                  {language === 'ar' ? 'شهادة قاعة المحكمة' : 'Courtroom testimony'}
+                </span>
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">Deposition services</span>
+                <span className="text-sm">
+                  {language === 'ar' ? 'خدمات الإفادة' : 'Deposition services'}
+                </span>
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">Case consultation</span>
+                <span className="text-sm">
+                  {language === 'ar' ? 'استشارة القضية' : 'Case consultation'}
+                </span>
               </li>
             </ul>
           </div>
 
           <div className="bg-white rounded-lg shadow-lg p-8">
             <Award className="h-12 w-12 text-blue-800 mb-4" />
-            <h3 className="text-2xl font-semibold mb-4">Specialized Equipment</h3>
+            <h3 className="text-2xl font-semibold mb-4">
+              {language === 'ar' ? 'معدات متخصصة' : 'Specialized Equipment'}
+            </h3>
             <p className="text-gray-600 mb-6">
-              State-of-the-art analytical equipment and specialized tools for accurate 
-              explosives identification and analysis.
+              {language === 'ar' ? 
+                'معدات تحليلية حديثة وأدوات متخصصة لتحديد وتحليل المتفجرات بدقة.' :
+                'State-of-the-art analytical equipment and specialized tools for accurate explosives identification and analysis.'
+              }
             </p>
             <ul className="space-y-2">
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">Mass spectrometry</span>
+                <span className="text-sm">
+                  {language === 'ar' ? 'قياس الطيف الكتلي' : 'Mass spectrometry'}
+                </span>
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">X-ray crystallography</span>
+                <span className="text-sm">
+                  {language === 'ar' ? 'علم البلورات بالأشعة السينية' : 'X-ray crystallography'}
+                </span>
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm">Infrared spectroscopy</span>
+                <span className="text-sm">
+                  {language === 'ar' ? 'التحليل الطيفي بالأشعة تحت الحمراء' : 'Infrared spectroscopy'}
+                </span>
               </li>
             </ul>
           </div>
@@ -232,22 +296,27 @@ const ExplosivesAnalysis = () => {
 
         {/* CTA Section */}
         <div className="bg-blue-800 text-white rounded-lg p-8 text-center">
-          <h2 className="text-3xl font-bold mb-4">Need Explosives Analysis?</h2>
+          <h2 className="text-3xl font-bold mb-4">
+            {language === 'ar' ? 'تحتاج تحليل متفجرات؟' : 'Need Explosives Analysis?'}
+          </h2>
           <p className="text-xl text-blue-100 mb-6">
-            Contact us today to discuss your explosives analysis needs and get expert consultation.
+            {language === 'ar' ? 
+              'اتصل بنا اليوم لمناقشة احتياجات تحليل المتفجرات والحصول على استشارة خبيرة.' :
+              'Contact us today to discuss your explosives analysis needs and get expert consultation.'
+            }
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/contact"
               className="bg-orange-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors"
             >
-              Book Consultation
+              {language === 'ar' ? 'احجز استشارة' : 'Book Consultation'}
             </Link>
             <Link
               to="/contact"
               className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-800 transition-colors"
             >
-              Contact Us
+              {language === 'ar' ? 'اتصل بنا' : 'Contact Us'}
             </Link>
           </div>
         </div>
