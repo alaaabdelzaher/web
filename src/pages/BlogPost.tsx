@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Calendar, User, Tag, ArrowLeft, Clock, Eye } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { supabase, BlogPost } from '../lib/supabase';
+import { supabase, BlogPost, DatabaseService } from '../lib/supabase';
 
 const BlogPostDetail = () => {
   const { id } = useParams<{ id: string }>();
