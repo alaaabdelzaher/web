@@ -40,8 +40,8 @@ const Home = () => {
   const defaultContent = {
     hero: {
       title: {
-        ar: 'aabdelzaher.com - استشارات فنية وقانونية متخصصة',
-        en: 'aabdelzaher.com - Specialized Technical and Legal Consulting'
+        ar: 'aabdelzaher - استشارات فنية وقانونية متخصصة',
+        en: 'aabdelzaher - Specialized Technical and Legal Consulting'
       },
       subtitle: {
         ar: 'نتخصص في تقديم الاستشارات الفنية والقانونية في مجالات الحماية المدنية والأدلة الجنائية ومكافحة الحرائق والمفرقعات، بخبرة عملية تتجاوز 20 عاماً.',

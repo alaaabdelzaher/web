@@ -86,7 +86,7 @@ const Chatbot = () => {
                   }`}
                 >
                   {message.text}
-                </div>
+                Available 24 hours a day, 7 days a week
               </div>
             ))}
           </div>
