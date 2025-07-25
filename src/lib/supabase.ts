@@ -511,6 +511,50 @@ export class DatabaseService {
     }
   }
 
+  // Create or update content section with multilingual support
+  static async updateContentSectionMultilingual(key: string, content: any, language: 'ar' | 'en' = 'ar') {
+    try {
+      const existingSection = await this.getContentSection(key);
+      let updatedContent = content;
+      
+      if (existingSection && existingSection.content_type === 'json') {
+        try {
+          const existingData = JSON.parse(existingSection.content);
+          updatedContent = {
+            ...existingData,
+            [language]: content
+          };
+        } catch (e) {
+          updatedContent = { [language]: content };
+        }
+      } else if (typeof content === 'object') {
+        updatedContent = JSON.stringify(content);
+      }
+
+      const { data, error } = await supabase
+        .from('content_sections')
+        .upsert({ 
+          section_key: key,
+          section_name: key.replace('_', ' ').toUpperCase(),
+          content_type: typeof content === 'object' ? 'json' : 'text',
+          content: typeof updatedContent === 'string' ? updatedContent : JSON.stringify(updatedContent), 
+          is_active: true,
+          sort_order: 0,
+          updated_at: new Date().toISOString() 
+        }, {
+          onConflict: 'section_key'
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data as ContentSection;
+    } catch (error) {
+      console.error('Error updating multilingual content section:', error);
+      throw error;
+    }
+  }
+
   // Site Settings
   static async getSiteSettings() {
     try {
