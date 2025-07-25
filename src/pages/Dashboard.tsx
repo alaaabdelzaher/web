@@ -48,26 +48,35 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         postsData,
         certificationsData,
         teamData,
-        aboutData,
-        messagesData
+        aboutData
       ] = await Promise.all([
+        DatabaseService.getContentSection('home_content'),
+        DatabaseService.getCertifications(),
+        DatabaseService.getServices(),
+        DatabaseService.getTestimonials(),
+        DatabaseService.getStats(),
+        DatabaseService.getTeamMembers(),
+        DatabaseService.getContentSection('about_content')
+      ]);
+      
+      const [servicesData2, postsData2, certsData, teamData2, messagesData, aboutData2] = await Promise.all([
         DatabaseService.getServices(),
         DatabaseService.getBlogPosts(),
         DatabaseService.getCertifications(),
         DatabaseService.getTeamMembers(),
-        DatabaseService.getContentSection('about_content'),
-        DatabaseService.getContactMessages()
+        DatabaseService.getContactMessages(),
+        DatabaseService.getContentSection('about_content')
       ]);
 
-      setServices(servicesData);
-      setBlogPosts(postsData);
-      setCertifications(certificationsData);
-      setTeamMembers(teamData);
+      setServices(servicesData2);
+      setBlogPosts(postsData2);
+      setCertifications(certsData);
+      setTeamMembers(teamData2);
       setContactMessages(messagesData);
       
-      if (aboutData?.content) {
+      if (aboutData2?.content) {
         try {
-          setAboutContent(JSON.parse(aboutData.content));
+          setAboutContent(JSON.parse(aboutData2.content));
         } catch {
           setAboutContent({});
         }
@@ -95,13 +104,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
     return () => clearInterval(interval);
   }, [activeSection]);
-
-  // Refresh messages when trigger changes
-  useEffect(() => {
-    if (refreshTrigger > 0) {
-      loadAllData();
-    }
-  }, [refreshTrigger]);
 
   // Image upload handler
   const handleImageUpload = async (file: File) => {
@@ -1053,10 +1055,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">إدارة الرسائل</h2>
-        <button
+        <button 
           onClick={() => setRefreshTrigger(prev => prev + 1)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex items-center gap-2"
         >
+          <MessageSquare className="h-4 w-4" />
           تحديث الرسائل
         </button>
       </div>
