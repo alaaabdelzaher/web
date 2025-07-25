@@ -2,9 +2,44 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Award, Search, FileText, Shield, CheckCircle } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { DatabaseService } from '../../lib/supabase';
 
 const ExplosivesAnalysis = () => {
   const { language, t } = useLanguage();
+  const [pageContent, setPageContent] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const loadPageContent = async () => {
+      try {
+        setLoading(true);
+        const content = await DatabaseService.getServicePageContent('explosives-analysis');
+        setPageContent(content);
+      } catch (error) {
+        console.error('Error loading page content:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadPageContent();
+  }, []);
+
+  const getContentByKey = (key: string) => {
+    const content = pageContent.find(item => item.section_key === key);
+    if (!content) return null;
+    return {
+      title: language === 'ar' ? content.section_title_ar : content.section_title_en,
+      content: language === 'ar' ? content.content_ar : content.content_en
+    };
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen py-16 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen py-16" dir={language === 'ar' ? 'rtl' : 'ltr'}>
@@ -16,10 +51,10 @@ const ExplosivesAnalysis = () => {
             {language === 'ar' ? 'تحليل المتفجرات' : 'Explosives Analysis'}
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            {language === 'ar' ? 
+            {getContentByKey('hero')?.content || (language === 'ar' ? 
               'خدمات متخصصة في تحليل المتفجرات تشمل تحديد المكونات والتقارير الفنية والاستشارة الخبيرة للأغراض القانونية والتحقيقية.' :
               'Specialized explosives analysis services including component identification, technical reporting, and expert consultation for legal and investigative purposes.'
-            }
+            )}
           </p>
         </div>
 

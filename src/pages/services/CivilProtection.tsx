@@ -2,9 +2,44 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Shield, FileText, Flame, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { DatabaseService } from '../../lib/supabase';
 
 const CivilProtection = () => {
   const { language, t } = useLanguage();
+  const [pageContent, setPageContent] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const loadPageContent = async () => {
+      try {
+        setLoading(true);
+        const content = await DatabaseService.getServicePageContent('civil-protection');
+        setPageContent(content);
+      } catch (error) {
+        console.error('Error loading page content:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadPageContent();
+  }, []);
+
+  const getContentByKey = (key: string) => {
+    const content = pageContent.find(item => item.section_key === key);
+    if (!content) return null;
+    return {
+      title: language === 'ar' ? content.section_title_ar : content.section_title_en,
+      content: language === 'ar' ? content.content_ar : content.content_en
+    };
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen py-16 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen py-16" dir={language === 'ar' ? 'rtl' : 'ltr'}>
@@ -16,10 +51,10 @@ const CivilProtection = () => {
             {language === 'ar' ? 'خدمات الحماية المدنية' : 'Civil Protection Services'}
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            {language === 'ar' ? 
+            {getContentByKey('hero')?.content || (language === 'ar' ? 
               'خدمات شاملة للحماية المدنية تشمل فحص المباني وتحليل الحرائق والتخطيط للطوارئ لضمان السلامة والامتثال.' :
               'Comprehensive civil protection services including building inspections, fire analysis, and emergency planning to ensure safety and compliance.'
-            }
+            )}
           </p>
         </div>
 

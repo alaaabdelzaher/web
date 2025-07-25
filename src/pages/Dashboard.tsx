@@ -626,6 +626,228 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     </div>
   );
 
+  const renderServicePagesManagement = () => (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-900">إدارة صفحات الخدمات</h2>
+        <button
+          onClick={() => setEditingServiceContent({})}
+          className="bg-blue-800 text-white px-4 py-2 rounded-lg hover:bg-blue-900 transition-colors"
+        >
+          إضافة قسم جديد
+        </button>
+      </div>
+
+      {/* Service Types Tabs */}
+      <div className="flex space-x-4 border-b border-gray-200">
+        {[
+          { key: 'civil-protection', label: 'الحماية المدنية' },
+          { key: 'forensics', label: 'الطب الشرعي' },
+          { key: 'explosives-analysis', label: 'تحليل المتفجرات' }
+        ].map(serviceType => (
+          <button
+            key={serviceType.key}
+            className="px-4 py-2 font-medium text-gray-700 hover:text-blue-800 border-b-2 border-transparent hover:border-blue-800"
+          >
+            {serviceType.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Content Sections */}
+      <div className="grid grid-cols-1 gap-6">
+        {['civil-protection', 'forensics', 'explosives-analysis'].map(serviceType => (
+          <div key={serviceType} className="bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-xl font-semibold mb-4">
+              {serviceType === 'civil-protection' ? 'الحماية المدنية' :
+               serviceType === 'forensics' ? 'الطب الشرعي' : 'تحليل المتفجرات'}
+            </h3>
+            
+            <div className="space-y-4">
+              {data.servicePagesContent
+                ?.filter((content: any) => content.service_type === serviceType)
+                ?.sort((a: any, b: any) => a.section_order - b.section_order)
+                ?.map((content: any) => (
+                <div key={content.id} className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h4 className="font-medium text-gray-900">{content.section_title_ar}</h4>
+                      <p className="text-sm text-gray-500">{content.section_title_en}</p>
+                      <p className="text-xs text-gray-400">المفتاح: {content.section_key}</p>
+                    </div>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => setEditingServiceContent(content)}
+                        className="text-blue-600 hover:text-blue-800 text-sm"
+                      >
+                        تحرير
+                      </button>
+                      <button
+                        onClick={() => deleteServicePageContent(content.id)}
+                        className="text-red-600 hover:text-red-800 text-sm"
+                      >
+                        حذف
+                      </button>
+                    </div>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    <p className="mb-1"><strong>العربية:</strong> {content.content_ar.substring(0, 100)}...</p>
+                    <p><strong>English:</strong> {content.content_en.substring(0, 100)}...</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Edit/Add Modal */}
+      {editingServiceContent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <h3 className="text-xl font-semibold mb-4">
+              {editingServiceContent.id ? 'تحرير القسم' : 'إضافة قسم جديد'}
+            </h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">نوع الخدمة</label>
+                <select
+                  value={editingServiceContent.service_type || newServiceContent.service_type}
+                  onChange={(e) => {
+                    if (editingServiceContent.id) {
+                      setEditingServiceContent({...editingServiceContent, service_type: e.target.value});
+                    } else {
+                      setNewServiceContent({...newServiceContent, service_type: e.target.value});
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="civil-protection">الحماية المدنية</option>
+                  <option value="forensics">الطب الشرعي</option>
+                  <option value="explosives-analysis">تحليل المتفجرات</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">مفتاح القسم</label>
+                <input
+                  type="text"
+                  value={editingServiceContent.section_key || newServiceContent.section_key}
+                  onChange={(e) => {
+                    if (editingServiceContent.id) {
+                      setEditingServiceContent({...editingServiceContent, section_key: e.target.value});
+                    } else {
+                      setNewServiceContent({...newServiceContent, section_key: e.target.value});
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="مثال: hero, services, process"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">العنوان (عربي)</label>
+                  <input
+                    type="text"
+                    value={editingServiceContent.section_title_ar || newServiceContent.section_title_ar}
+                    onChange={(e) => {
+                      if (editingServiceContent.id) {
+                        setEditingServiceContent({...editingServiceContent, section_title_ar: e.target.value});
+                      } else {
+                        setNewServiceContent({...newServiceContent, section_title_ar: e.target.value});
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">العنوان (إنجليزي)</label>
+                  <input
+                    type="text"
+                    value={editingServiceContent.section_title_en || newServiceContent.section_title_en}
+                    onChange={(e) => {
+                      if (editingServiceContent.id) {
+                        setEditingServiceContent({...editingServiceContent, section_title_en: e.target.value});
+                      } else {
+                        setNewServiceContent({...newServiceContent, section_title_en: e.target.value});
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">المحتوى (عربي)</label>
+                <textarea
+                  value={editingServiceContent.content_ar || newServiceContent.content_ar}
+                  onChange={(e) => {
+                    if (editingServiceContent.id) {
+                      setEditingServiceContent({...editingServiceContent, content_ar: e.target.value});
+                    } else {
+                      setNewServiceContent({...newServiceContent, content_ar: e.target.value});
+                    }
+                  }}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">المحتوى (إنجليزي)</label>
+                <textarea
+                  value={editingServiceContent.content_en || newServiceContent.content_en}
+                  onChange={(e) => {
+                    if (editingServiceContent.id) {
+                      setEditingServiceContent({...editingServiceContent, content_en: e.target.value});
+                    } else {
+                      setNewServiceContent({...newServiceContent, content_en: e.target.value});
+                    }
+                  }}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">ترتيب القسم</label>
+                <input
+                  type="number"
+                  value={editingServiceContent.section_order || newServiceContent.section_order}
+                  onChange={(e) => {
+                    if (editingServiceContent.id) {
+                      setEditingServiceContent({...editingServiceContent, section_order: parseInt(e.target.value)});
+                    } else {
+                      setNewServiceContent({...newServiceContent, section_order: parseInt(e.target.value)});
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-4 mt-6">
+              <button
+                onClick={() => setEditingServiceContent(null)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+              >
+                إلغاء
+              </button>
+              <button
+                onClick={saveServicePageContent}
+                className="bg-blue-800 text-white px-4 py-2 rounded-lg hover:bg-blue-900 transition-colors"
+              >
+                حفظ
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   // Certifications Management
   const renderCertificationsManagement = () => (
     <div className="p-6">
@@ -1141,18 +1363,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     </div>
   );
 
-  // Service Pages Management
-  const renderServicePagesManagement = () => (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">إدارة صفحات الخدمات</h2>
-      </div>
-      <div className="bg-white rounded-lg shadow p-6">
-        <p className="text-gray-600">قريباً - إدارة صفحات الخدمات المخصصة</p>
-      </div>
-    </div>
-  );
-
   // Save functions
   const saveService = async () => {
     try {
@@ -1339,7 +1549,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     { id: 'certifications', label: 'الشهادات المهنية', icon: Award },
     { id: 'about', label: 'صفحة من نحن', icon: Users },
     { id: 'messages', label: 'الرسائل', icon: MessageSquare },
-    { id: 'service-pages', label: 'صفحات الخدمات', icon: Home },
     { id: 'settings', label: 'الإعدادات', icon: Settings },
   ];
 
@@ -1441,7 +1650,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
               {activeSection === 'certifications' && renderCertificationsManagement()}
               {activeSection === 'about' && renderAboutManagement()}
               {activeSection === 'messages' && renderMessagesManagement()}
-              {activeSection === 'service-pages' && renderServicePagesManagement()}
             </>
           )}
         </main>
