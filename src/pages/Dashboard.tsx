@@ -73,6 +73,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       setCertifications(certsData);
       setTeamMembers(teamData2);
       setContactMessages(messagesData);
+      setHomepageContent(homepageData);
       
       if (aboutData2?.content) {
         try {
