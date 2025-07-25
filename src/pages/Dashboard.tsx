@@ -49,6 +49,16 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         certificationsData,
         teamData,
         aboutData
+      ] = await Promise.all([
+        DatabaseService.getContentSection('home_content'),
+        DatabaseService.getCertifications(),
+        DatabaseService.getServices(),
+        DatabaseService.getTestimonials(),
+        DatabaseService.getStats(),
+        DatabaseService.getTeamMembers(),
+        DatabaseService.getContentSection('about_content')
+      ]);
+      
       const [servicesData, postsData, certsData, teamData, messagesData] = await Promise.all([
         DatabaseService.getServices(),
         DatabaseService.getBlogPosts(),
