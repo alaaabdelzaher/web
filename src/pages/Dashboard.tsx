@@ -636,7 +636,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     </div>
   );
 
-  const sections = [
+  const dashboardNavSections = [
     { id: 'home', label: 'الصفحة الرئيسية', icon: Home },
     { id: 'blog', label: 'المدونة', icon: FileText },
     { id: 'messages', label: 'الرسائل', icon: MessageSquare },
@@ -703,7 +703,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             <nav className="bg-white rounded-lg shadow sticky top-24">
               <div className="p-4">
                 <div className="space-y-1">
-                  {sections.map((section) => {
+                  {dashboardNavSections.map((section) => {
                     const Icon = section.icon;
                     return (
                       <button
