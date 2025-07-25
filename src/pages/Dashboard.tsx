@@ -17,6 +17,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   const { language, setLanguage } = useLanguage();
   const [activeSection, setActiveSection] = useState('services');
   const [loading, setLoading] = useState(false);
+  const [homepageContent, setHomepageContent] = useState<any[]>([]);
   const [message, setMessage] = useState('');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [darkMode, setDarkMode] = useState(false);
