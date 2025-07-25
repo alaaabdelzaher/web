@@ -31,6 +31,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [showPostForm, setShowPostForm] = useState(false);
+ const [uploadingImage, setUploadingImage] = useState(false);
   const [postForm, setPostForm] = useState({
     title: '',
     slug: '',
@@ -185,6 +186,35 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       seo_keywords: post.seo_keywords || []
     });
   };
+
+ // Image Upload Function
+ const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+   const file = e.target.files?.[0];
+   if (!file) return;
+
+   // Validate file type
+   if (!file.type.startsWith('image/')) {
+     alert(language === 'ar' ? 'يرجى اختيار ملف صورة صالح' : 'Please select a valid image file');
+     return;
+   }
+
+   // Validate file size (max 5MB)
+   if (file.size > 5 * 1024 * 1024) {
+     alert(language === 'ar' ? 'حجم الصورة يجب أن يكون أقل من 5 ميجابايت' : 'Image size must be less than 5MB');
+     return;
+   }
+
+   try {
+     setUploadingImage(true);
+     const uploadedFile = await DatabaseService.uploadMediaFile(file, 'blog-images');
+     setPostForm({...postForm, featured_image: uploadedFile.url});
+   } catch (error) {
+     console.error('Error uploading image:', error);
+     alert(language === 'ar' ? 'فشل في رفع الصورة. يرجى المحاولة مرة أخرى.' : 'Failed to upload image. Please try again.');
+   } finally {
+     setUploadingImage(false);
+   }
+ };
 
   // Contact Messages Functions
   const handleMessageStatusUpdate = async (id: string, status: ContactMessage['status']) => {
@@ -494,12 +524,80 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         {language === 'ar' ? 'رابط الصورة المميزة' : 'Featured Image URL'}
                       </label>
-                      <input
-                        type="url"
-                        value={postForm.featured_image}
-                        onChange={(e) => setPostForm({...postForm, featured_image: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-4">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            className="hidden"
+                            id="image-upload"
+                          />
+                          <label
+                            htmlFor="image-upload"
+                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer flex items-center"
+                          >
+                            <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            {language === 'ar' ? 'رفع صورة' : 'Upload Image'}
+                          </label>
+                          {uploadingImage && (
+                            <div className="flex items-center text-blue-600">
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                              {language === 'ar' ? 'جاري الرفع...' : 'Uploading...'}
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="text-sm text-gray-500">
+                          {language === 'ar' ? 'أو أدخل رابط الصورة مباشرة:' : 'Or enter image URL directly:'}
+                        </div>
+                        
+                        <input
+                          type="url"
+                          value={postForm.featured_image}
+                          onChange={(e) => setPostForm({...postForm, featured_image: e.target.value})}
+                          placeholder={language === 'ar' ? 'https://example.com/image.jpg' : 'https://example.com/image.jpg'}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        
+                        {postForm.featured_image && (
+                          <div className="mt-4">
+                            <div className="text-sm font-medium text-gray-700 mb-2">
+                              {language === 'ar' ? 'معاينة الصورة:' : 'Image Preview:'}
+                            </div>
+                            <div className="relative">
+                              <img
+                                src={postForm.featured_image}
+                                alt="Preview"
+                                className="w-full max-w-md h-48 object-cover rounded-lg border border-gray-300"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                  e.currentTarget.nextElementSibling.style.display = 'block';
+                                }}
+                              />
+                              <div className="hidden w-full max-w-md h-48 bg-gray-100 rounded-lg border border-gray-300 flex items-center justify-center">
+                                <div className="text-center text-gray-500">
+                                  <svg className="h-12 w-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  <p className="text-sm">{language === 'ar' ? 'فشل تحميل الصورة' : 'Failed to load image'}</p>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setPostForm({...postForm, featured_image: ''})}
+                                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                              >
+                                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <div className="flex justify-end space-x-4 mt-8">
