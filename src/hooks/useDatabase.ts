@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { DatabaseService } from '../lib/supabase';
+import { DatabaseService, ChatbotResponse } from '../lib/supabase';
 
 // Simple hook for loading data
 export function useData() {
@@ -38,4 +38,31 @@ export function useData() {
   }, []);
 
   return { data, loading, refetch: loadData };
+}
+
+// Hook for chatbot responses
+export function useChatbotResponses() {
+  const [responses, setResponses] = useState<ChatbotResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadResponses = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await DatabaseService.getChatbotResponses();
+      setResponses(data);
+    } catch (err) {
+      console.error('Error loading chatbot responses:', err);
+      setError('Failed to load chatbot responses');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadResponses();
+  }, []);
+
+  return { responses, loading, error, refetch: loadResponses };
 }
