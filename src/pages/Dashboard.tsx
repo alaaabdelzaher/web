@@ -1141,6 +1141,18 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     </div>
   );
 
+  // Service Pages Management
+  const renderServicePagesManagement = () => (
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold">إدارة صفحات الخدمات</h2>
+      </div>
+      <div className="bg-white rounded-lg shadow p-6">
+        <p className="text-gray-600">قريباً - إدارة صفحات الخدمات المخصصة</p>
+      </div>
+    </div>
+  );
+
   // Save functions
   const saveService = async () => {
     try {
@@ -1327,6 +1339,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     { id: 'certifications', label: 'الشهادات المهنية', icon: Award },
     { id: 'about', label: 'صفحة من نحن', icon: Users },
     { id: 'messages', label: 'الرسائل', icon: MessageSquare },
+    { id: 'service-pages', label: 'صفحات الخدمات', icon: Home },
     { id: 'settings', label: 'الإعدادات', icon: Settings },
   ];
 
@@ -1428,6 +1441,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
               {activeSection === 'certifications' && renderCertificationsManagement()}
               {activeSection === 'about' && renderAboutManagement()}
               {activeSection === 'messages' && renderMessagesManagement()}
+              {activeSection === 'service-pages' && renderServicePagesManagement()}
             </>
           )}
         </main>
