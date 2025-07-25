@@ -2400,6 +2400,9 @@ const HomepageManagement = ({ homepageContent, onUpdate }: { homepageContent: an
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+        </div>
+      </div>
+
       {/* Testimonials Section */}
       <div className="bg-white rounded-lg shadow-lg p-6">
         <h3 className="text-xl font-semibold mb-4 text-blue-800">
@@ -2452,7 +2455,7 @@ const HomepageManagement = ({ homepageContent, onUpdate }: { homepageContent: an
           </div>
         </div>
       </div>
-        </div>
+
       {/* CTA Section */}
       <div className="bg-white rounded-lg shadow-lg p-6">
         <h3 className="text-xl font-semibold mb-4 text-blue-800">
@@ -2508,5 +2511,5 @@ const HomepageManagement = ({ homepageContent, onUpdate }: { homepageContent: an
     </div>
   );
 };
-      </div>
+
 export default Dashboard;
