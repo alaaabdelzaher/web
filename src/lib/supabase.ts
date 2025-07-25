@@ -130,6 +130,20 @@ export interface ContactMessage {
   replied_by?: string;
 }
 
+export interface ServicePageContent {
+  id: string;
+  service_type: 'civil-protection' | 'forensics' | 'explosives-analysis';
+  section_key: string;
+  section_title_ar: string;
+  section_title_en: string;
+  content_ar: string;
+  content_en: string;
+  section_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Certification {
   id: string;
   name: string;
@@ -1056,6 +1070,87 @@ export class DatabaseService {
     } catch (error) {
       console.error('Error fetching analytics:', error);
       return [];
+    }
+  }
+
+  // Service Pages Content
+  static async getServicePageContent(serviceType: string) {
+    try {
+      const { data, error } = await supabase
+        .from('service_pages_content')
+        .select('*')
+        .eq('service_type', serviceType)
+        .eq('is_active', true)
+        .order('section_order');
+      
+      if (error) throw error;
+      return data as ServicePageContent[];
+    } catch (error) {
+      console.error('Error fetching service page content:', error);
+      return [];
+    }
+  }
+
+  static async getAllServicePagesContent() {
+    try {
+      const { data, error } = await supabase
+        .from('service_pages_content')
+        .select('*')
+        .order('service_type', { ascending: true })
+        .order('section_order', { ascending: true });
+      
+      if (error) throw error;
+      return data as ServicePageContent[];
+    } catch (error) {
+      console.error('Error fetching all service pages content:', error);
+      return [];
+    }
+  }
+
+  static async createServicePageContent(content: Partial<ServicePageContent>) {
+    try {
+      const { data, error } = await supabase
+        .from('service_pages_content')
+        .insert(content)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data as ServicePageContent;
+    } catch (error) {
+      console.error('Error creating service page content:', error);
+      throw error;
+    }
+  }
+
+  static async updateServicePageContent(id: string, updates: Partial<ServicePageContent>) {
+    try {
+      const { data, error } = await supabase
+        .from('service_pages_content')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data as ServicePageContent;
+    } catch (error) {
+      console.error('Error updating service page content:', error);
+      throw error;
+    }
+  }
+
+  static async deleteServicePageContent(id: string) {
+    try {
+      const { error } = await supabase
+        .from('service_pages_content')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error deleting service page content:', error);
+      throw error;
     }
   }
 }
