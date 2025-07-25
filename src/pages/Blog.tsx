@@ -85,7 +85,11 @@ const Blog = () => {
         {/* Blog Posts Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredPosts.map(post => (
-            <article key={post.id} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+            <Link 
+              key={post.id} 
+              to={`/blog/${post.id}`}
+              className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow block"
+            >
               {post.featured_image ? (
                 <div className="h-48 overflow-hidden">
                   <img 
@@ -135,7 +139,7 @@ const Blog = () => {
                   <ArrowRight className="h-4 w-4 ml-1" />
                 </Link>
               </div>
-            </article>
+            </Link>
           ))}
         </div>
 
