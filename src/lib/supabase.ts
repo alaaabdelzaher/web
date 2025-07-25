@@ -758,6 +758,150 @@ export class DatabaseService {
     }
   }
 
+  // Services
+  static async createService(service: Partial<any>) {
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .insert(service)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error creating service:', error);
+      throw error;
+    }
+  }
+
+  static async updateService(id: string, updates: Partial<any>) {
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error updating service:', error);
+      throw error;
+    }
+  }
+
+  static async deleteService(id: string) {
+    try {
+      const { error } = await supabase
+        .from('services')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error deleting service:', error);
+      throw error;
+    }
+  }
+
+  // Certifications
+  static async createCertification(cert: Partial<any>) {
+    try {
+      const { data, error } = await supabase
+        .from('certifications')
+        .insert(cert)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error creating certification:', error);
+      throw error;
+    }
+  }
+
+  static async updateCertification(id: string, updates: Partial<any>) {
+    try {
+      const { data, error } = await supabase
+        .from('certifications')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error updating certification:', error);
+      throw error;
+    }
+  }
+
+  static async deleteCertification(id: string) {
+    try {
+      const { error } = await supabase
+        .from('certifications')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error deleting certification:', error);
+      throw error;
+    }
+  }
+
+  // Team Members
+  static async createTeamMember(member: Partial<any>) {
+    try {
+      const { data, error } = await supabase
+        .from('team_members')
+        .insert(member)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error creating team member:', error);
+      throw error;
+    }
+  }
+
+  static async updateTeamMember(id: string, updates: Partial<any>) {
+    try {
+      const { data, error } = await supabase
+        .from('team_members')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error updating team member:', error);
+      throw error;
+    }
+  }
+
+  static async deleteTeamMember(id: string) {
+    try {
+      const { error } = await supabase
+        .from('team_members')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error deleting team member:', error);
+      throw error;
+    }
+  }
+
   // Team Members
   static async getTeamMembers() {
     try {

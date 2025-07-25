@@ -4,7 +4,7 @@ import {
   Edit3, Save, X, Plus, Trash2, Eye, EyeOff, Moon, Sun,
   Phone, Mail, MapPin, Star, Award, CheckCircle, Globe,
   Calendar, User, Tag, Search, ArrowRight, Target, Flame,
-  AlertTriangle, LogOut
+  AlertTriangle, LogOut, Upload, Image as ImageIcon
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { DatabaseService } from '../lib/supabase';
@@ -15,28 +15,23 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   const { language, setLanguage } = useLanguage();
-  const [activeSection, setActiveSection] = useState('home');
+  const [activeSection, setActiveSection] = useState('services');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [darkMode, setDarkMode] = useState(false);
 
   // Content states
-  const [homeContent, setHomeContent] = useState({
-    hero_title_ar: 'فورنسيك برو - خبرة موثوقة في الحماية المدنية والطب الشرعي',
-    hero_title_en: 'ForensicPro - Trusted Expertise in Civil Protection & Forensics',
-    hero_subtitle_ar: 'مع أكثر من 20 عاماً من الخبرة، نقدم تحليلاً شرعياً شاملاً وخدمات الحماية المدنية والاستشارات الخبيرة للحالات القانونية والطوارئ.',
-    hero_subtitle_en: 'With over 20 years of experience, we provide comprehensive forensic analysis, civil protection services, and expert consultation for legal and emergency situations.',
-    cta1_text_ar: 'احجز استشارة',
-    cta1_text_en: 'Book Consultation',
-    cta2_text_ar: 'اتصل بنا',
-    cta2_text_en: 'Contact Us'
-  });
+  const [services, setServices] = useState<any[]>([]);
+  const [blogPosts, setBlogPosts] = useState<any[]>([]);
+  const [certifications, setCertifications] = useState<any[]>([]);
+  const [aboutContent, setAboutContent] = useState<any>({});
+  const [teamMembers, setTeamMembers] = useState<any[]>([]);
 
-  const [certifications, setCertifications] = useState([]);
-  const [services, setServices] = useState([]);
-  const [testimonials, setTestimonials] = useState([]);
-  const [blogPosts, setBlogPosts] = useState([]);
-  const [messages, setMessages] = useState([]);
+  // Form states
+  const [editingService, setEditingService] = useState<any>(null);
+  const [editingPost, setEditingPost] = useState<any>(null);
+  const [editingCert, setEditingCert] = useState<any>(null);
+  const [editingTeamMember, setEditingTeamMember] = useState<any>(null);
 
   // Load data
   useEffect(() => {
@@ -47,24 +42,31 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     try {
       setLoading(true);
       const [
-        certificationsData,
         servicesData,
-        testimonialsData,
         postsData,
-        messagesData
+        certificationsData,
+        teamData,
+        aboutData
       ] = await Promise.all([
-        DatabaseService.getCertifications(),
         DatabaseService.getServices(),
-        DatabaseService.getTestimonials(),
         DatabaseService.getBlogPosts(),
-        DatabaseService.getContactMessages()
+        DatabaseService.getCertifications(),
+        DatabaseService.getTeamMembers(),
+        DatabaseService.getContentSection('about_content')
       ]);
 
-      setCertifications(certificationsData);
       setServices(servicesData);
-      setTestimonials(testimonialsData);
       setBlogPosts(postsData);
-      setMessages(messagesData);
+      setCertifications(certificationsData);
+      setTeamMembers(teamData);
+      
+      if (aboutData?.content) {
+        try {
+          setAboutContent(JSON.parse(aboutData.content));
+        } catch {
+          setAboutContent({});
+        }
+      }
     } catch (error) {
       console.error('Error loading data:', error);
       showMessage('خطأ في تحميل البيانات', 'error');
@@ -78,185 +80,68 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     setTimeout(() => setMessage(''), 3000);
   };
 
-  const saveHomeContent = async () => {
+  // Image upload handler
+  const handleImageUpload = async (file: File) => {
     try {
-      await DatabaseService.updateContentSection('home_content', JSON.stringify(homeContent));
-      showMessage('تم حفظ محتوى الصفحة الرئيسية بنجاح');
+      const mediaFile = await DatabaseService.uploadMediaFile(file);
+      return mediaFile.url;
     } catch (error) {
-      showMessage('خطأ في حفظ المحتوى', 'error');
+      showMessage('خطأ في رفع الصورة', 'error');
+      return null;
     }
   };
-
-  // Home Content Management
-  const renderHomeManagement = () => (
-    <div className="p-6 space-y-8">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">إدارة الصفحة الرئيسية</h2>
-        <button
-          onClick={saveHomeContent}
-          className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 flex items-center gap-2"
-        >
-          <Save className="h-4 w-4" />
-          حفظ التغييرات
-        </button>
-      </div>
-
-      {/* Hero Section */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <Target className="h-5 w-5" />
-          قسم الهيرو الرئيسي
-        </h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium mb-2">العنوان الرئيسي (عربي)</label>
-            <textarea
-              value={homeContent.hero_title_ar}
-              onChange={(e) => setHomeContent({...homeContent, hero_title_ar: e.target.value})}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              rows={2}
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium mb-2">Main Title (English)</label>
-            <textarea
-              value={homeContent.hero_title_en}
-              onChange={(e) => setHomeContent({...homeContent, hero_title_en: e.target.value})}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              rows={2}
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium mb-2">الوصف (عربي)</label>
-            <textarea
-              value={homeContent.hero_subtitle_ar}
-              onChange={(e) => setHomeContent({...homeContent, hero_subtitle_ar: e.target.value})}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              rows={3}
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium mb-2">Description (English)</label>
-            <textarea
-              value={homeContent.hero_subtitle_en}
-              onChange={(e) => setHomeContent({...homeContent, hero_subtitle_en: e.target.value})}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              rows={3}
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium mb-2">نص الزر الأول (عربي)</label>
-            <input
-              type="text"
-              value={homeContent.cta1_text_ar}
-              onChange={(e) => setHomeContent({...homeContent, cta1_text_ar: e.target.value})}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium mb-2">First Button Text (English)</label>
-            <input
-              type="text"
-              value={homeContent.cta1_text_en}
-              onChange={(e) => setHomeContent({...homeContent, cta1_text_en: e.target.value})}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Preview */}
-      <div className="bg-gray-50 rounded-lg p-6">
-        <h3 className="text-lg font-semibold mb-4">معاينة المحتوى</h3>
-        <div className="bg-gradient-to-r from-blue-900 to-blue-800 text-white p-8 rounded-lg">
-          <h1 className="text-3xl font-bold mb-4">
-            {language === 'ar' ? homeContent.hero_title_ar : homeContent.hero_title_en}
-          </h1>
-          <p className="text-xl text-blue-100 mb-6">
-            {language === 'ar' ? homeContent.hero_subtitle_ar : homeContent.hero_subtitle_en}
-          </p>
-          <div className="flex gap-4">
-            <button className="bg-orange-500 text-white px-6 py-3 rounded-lg">
-              {language === 'ar' ? homeContent.cta1_text_ar : homeContent.cta1_text_en}
-            </button>
-            <button className="border-2 border-white text-white px-6 py-3 rounded-lg">
-              {language === 'ar' ? homeContent.cta2_text_ar : homeContent.cta2_text_en}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Certifications Management
-  const renderCertificationsManagement = () => (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">إدارة الشهادات المهنية</h2>
-        <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          إضافة شهادة جديدة
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {certifications.map((cert: any) => (
-          <div key={cert.id} className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex justify-between items-start mb-4">
-              <Award className="h-8 w-8 text-blue-600" />
-              <div className="flex gap-2">
-                <button className="text-blue-500 hover:text-blue-700">
-                  <Edit3 className="h-4 w-4" />
-                </button>
-                <button className="text-red-500 hover:text-red-700">
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-            <h3 className="font-semibold text-lg mb-2">{cert.name}</h3>
-            <p className="text-gray-600 mb-2">{cert.organization}</p>
-            {cert.year_obtained && (
-              <p className="text-sm text-gray-500">{cert.year_obtained}</p>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
 
   // Services Management
   const renderServicesManagement = () => (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">إدارة الخدمات</h2>
-        <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex items-center gap-2">
+        <button 
+          onClick={() => setEditingService({ 
+            title_ar: '', title_en: '', description_ar: '', description_en: '',
+            icon: '', category: '', features: [], image_url: '', is_active: true
+          })}
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex items-center gap-2"
+        >
           <Plus className="h-4 w-4" />
           إضافة خدمة جديدة
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {services.map((service: any) => (
+      {/* Services Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {services.map((service) => (
           <div key={service.id} className="bg-white rounded-lg shadow-md p-6">
+            {service.image_url && (
+              <img 
+                src={service.image_url} 
+                alt={service.title}
+                className="w-full h-48 object-cover rounded-lg mb-4"
+              />
+            )}
             <div className="flex justify-between items-start mb-4">
               <Shield className="h-8 w-8 text-blue-600" />
               <div className="flex gap-2">
-                <button className="text-blue-500 hover:text-blue-700">
+                <button 
+                  onClick={() => setEditingService(service)}
+                  className="text-blue-500 hover:text-blue-700"
+                >
                   <Edit3 className="h-4 w-4" />
                 </button>
-                <button className="text-red-500 hover:text-red-700">
+                <button 
+                  onClick={() => deleteService(service.id)}
+                  className="text-red-500 hover:text-red-700"
+                >
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
             </div>
-            <h3 className="font-semibold text-lg mb-2">{service.title}</h3>
-            <p className="text-gray-600 mb-4">{service.description}</p>
+            <h3 className="font-semibold text-lg mb-2">
+              {language === 'ar' ? service.title_ar : service.title_en}
+            </h3>
+            <p className="text-gray-600 mb-4">
+              {language === 'ar' ? service.description_ar : service.description_en}
+            </p>
             {service.features && (
               <ul className="space-y-1">
                 {service.features.slice(0, 3).map((feature: string, idx: number) => (
@@ -270,47 +155,192 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
           </div>
         ))}
       </div>
-    </div>
-  );
 
-  // Testimonials Management
-  const renderTestimonialsManagement = () => (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">إدارة آراء العملاء</h2>
-        <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          إضافة رأي جديد
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {testimonials.map((testimonial: any) => (
-          <div key={testimonial.id} className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex items-center">
-                {[...Array(testimonial.rating || 5)].map((_, i) => (
-                  <Star key={i} className="h-4 w-4 text-yellow-500 fill-current" />
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <button className="text-blue-500 hover:text-blue-700">
-                  <Edit3 className="h-4 w-4" />
-                </button>
-                <button className="text-red-500 hover:text-red-700">
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
+      {/* Service Edit Modal */}
+      {editingService && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold">
+                {editingService.id ? 'تعديل الخدمة' : 'إضافة خدمة جديدة'}
+              </h3>
+              <button onClick={() => setEditingService(null)}>
+                <X className="h-6 w-6" />
+              </button>
             </div>
-            <p className="text-gray-700 mb-4">"{testimonial.testimonial}"</p>
-            <div className="font-semibold">
-              — {testimonial.client_name}
-              {testimonial.client_title && `, ${testimonial.client_title}`}
-              {testimonial.company && ` at ${testimonial.company}`}
+
+            <div className="space-y-4">
+              {/* Image Upload */}
+              <div>
+                <label className="block text-sm font-medium mb-2">صورة الخدمة</label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                  {editingService.image_url ? (
+                    <div className="relative">
+                      <img 
+                        src={editingService.image_url} 
+                        alt="Service"
+                        className="w-full h-48 object-cover rounded-lg"
+                      />
+                      <button
+                        onClick={() => setEditingService({...editingService, image_url: ''})}
+                        className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="cursor-pointer flex flex-col items-center">
+                      <Upload className="h-12 w-12 text-gray-400 mb-2" />
+                      <span className="text-gray-500">اضغط لرفع صورة</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const url = await handleImageUpload(file);
+                            if (url) {
+                              setEditingService({...editingService, image_url: url});
+                            }
+                          }
+                        }}
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+
+              {/* Title Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">العنوان (عربي)</label>
+                  <input
+                    type="text"
+                    value={editingService.title_ar || ''}
+                    onChange={(e) => setEditingService({...editingService, title_ar: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Title (English)</label>
+                  <input
+                    type="text"
+                    value={editingService.title_en || ''}
+                    onChange={(e) => setEditingService({...editingService, title_en: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  />
+                </div>
+              </div>
+
+              {/* Description Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">الوصف (عربي)</label>
+                  <textarea
+                    value={editingService.description_ar || ''}
+                    onChange={(e) => setEditingService({...editingService, description_ar: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                    rows={4}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Description (English)</label>
+                  <textarea
+                    value={editingService.description_en || ''}
+                    onChange={(e) => setEditingService({...editingService, description_en: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                    rows={4}
+                  />
+                </div>
+              </div>
+
+              {/* Category and Icon */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">التصنيف</label>
+                  <select
+                    value={editingService.category || ''}
+                    onChange={(e) => setEditingService({...editingService, category: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  >
+                    <option value="">اختر التصنيف</option>
+                    <option value="civil-protection">الحماية المدنية</option>
+                    <option value="forensics">الطب الشرعي</option>
+                    <option value="explosives">تحليل المتفجرات</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">الأيقونة</label>
+                  <input
+                    type="text"
+                    value={editingService.icon || ''}
+                    onChange={(e) => setEditingService({...editingService, icon: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                    placeholder="اسم الأيقونة"
+                  />
+                </div>
+              </div>
+
+              {/* Features */}
+              <div>
+                <label className="block text-sm font-medium mb-2">المميزات</label>
+                <div className="space-y-2">
+                  {(editingService.features || []).map((feature: string, index: number) => (
+                    <div key={index} className="flex gap-2">
+                      <input
+                        type="text"
+                        value={feature}
+                        onChange={(e) => {
+                          const newFeatures = [...(editingService.features || [])];
+                          newFeatures[index] = e.target.value;
+                          setEditingService({...editingService, features: newFeatures});
+                        }}
+                        className="flex-1 p-2 border border-gray-300 rounded-lg"
+                      />
+                      <button
+                        onClick={() => {
+                          const newFeatures = (editingService.features || []).filter((_: any, i: number) => i !== index);
+                          setEditingService({...editingService, features: newFeatures});
+                        }}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => {
+                      const newFeatures = [...(editingService.features || []), ''];
+                      setEditingService({...editingService, features: newFeatures});
+                    }}
+                    className="text-blue-500 hover:text-blue-700 flex items-center gap-1"
+                  >
+                    <Plus className="h-4 w-4" />
+                    إضافة ميزة
+                  </button>
+                </div>
+              </div>
+
+              {/* Save Button */}
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setEditingService(null)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  إلغاء
+                </button>
+                <button
+                  onClick={saveService}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                >
+                  حفظ
+                </button>
+              </div>
             </div>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 
@@ -319,89 +349,773 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">إدارة المدونة</h2>
-        <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex items-center gap-2">
+        <button 
+          onClick={() => setEditingPost({ 
+            title: '', slug: '', excerpt: '', content: '', author_name: '',
+            category: '', tags: [], status: 'draft', featured_image: ''
+          })}
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex items-center gap-2"
+        >
           <Plus className="h-4 w-4" />
           مقال جديد
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {blogPosts.map((post: any) => (
-          <div key={post.id} className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between mb-4">
-              <span className={`px-2 py-1 rounded text-xs ${
-                post.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-              }`}>
-                {post.status === 'published' ? 'منشور' : 'مسودة'}
-              </span>
+      {/* Posts Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {blogPosts.map((post) => (
+          <div key={post.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+            {post.featured_image && (
+              <img 
+                src={post.featured_image} 
+                alt={post.title}
+                className="w-full h-48 object-cover"
+              />
+            )}
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <span className={`px-2 py-1 rounded text-xs ${
+                  post.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                }`}>
+                  {post.status === 'published' ? 'منشور' : 'مسودة'}
+                </span>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => setEditingPost(post)}
+                    className="text-blue-500 hover:text-blue-700"
+                  >
+                    <Edit3 className="h-4 w-4" />
+                  </button>
+                  <button 
+                    onClick={() => deletePost(post.id)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+              <h3 className="font-semibold mb-2">{post.title}</h3>
+              <p className="text-gray-600 text-sm mb-4">{post.excerpt}</p>
+              <div className="flex items-center text-xs text-gray-500">
+                <Calendar className="h-3 w-3 mr-1" />
+                {new Date(post.created_at).toLocaleDateString()}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Post Edit Modal */}
+      {editingPost && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold">
+                {editingPost.id ? 'تعديل المقال' : 'مقال جديد'}
+              </h3>
+              <button onClick={() => setEditingPost(null)}>
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Featured Image */}
+              <div>
+                <label className="block text-sm font-medium mb-2">الصورة المميزة</label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                  {editingPost.featured_image ? (
+                    <div className="relative">
+                      <img 
+                        src={editingPost.featured_image} 
+                        alt="Featured"
+                        className="w-full h-48 object-cover rounded-lg"
+                      />
+                      <button
+                        onClick={() => setEditingPost({...editingPost, featured_image: ''})}
+                        className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="cursor-pointer flex flex-col items-center">
+                      <ImageIcon className="h-12 w-12 text-gray-400 mb-2" />
+                      <span className="text-gray-500">اضغط لرفع صورة</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const url = await handleImageUpload(file);
+                            if (url) {
+                              setEditingPost({...editingPost, featured_image: url});
+                            }
+                          }
+                        }}
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+
+              {/* Title and Slug */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">عنوان المقال</label>
+                  <input
+                    type="text"
+                    value={editingPost.title || ''}
+                    onChange={(e) => setEditingPost({...editingPost, title: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">الرابط (Slug)</label>
+                  <input
+                    type="text"
+                    value={editingPost.slug || ''}
+                    onChange={(e) => setEditingPost({...editingPost, slug: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  />
+                </div>
+              </div>
+
+              {/* Excerpt */}
+              <div>
+                <label className="block text-sm font-medium mb-2">المقدمة</label>
+                <textarea
+                  value={editingPost.excerpt || ''}
+                  onChange={(e) => setEditingPost({...editingPost, excerpt: e.target.value})}
+                  className="w-full p-3 border border-gray-300 rounded-lg"
+                  rows={3}
+                />
+              </div>
+
+              {/* Content */}
+              <div>
+                <label className="block text-sm font-medium mb-2">محتوى المقال</label>
+                <textarea
+                  value={editingPost.content || ''}
+                  onChange={(e) => setEditingPost({...editingPost, content: e.target.value})}
+                  className="w-full p-3 border border-gray-300 rounded-lg"
+                  rows={10}
+                />
+              </div>
+
+              {/* Meta Information */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">الكاتب</label>
+                  <input
+                    type="text"
+                    value={editingPost.author_name || ''}
+                    onChange={(e) => setEditingPost({...editingPost, author_name: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">التصنيف</label>
+                  <select
+                    value={editingPost.category || ''}
+                    onChange={(e) => setEditingPost({...editingPost, category: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  >
+                    <option value="">اختر التصنيف</option>
+                    <option value="forensics">الطب الشرعي</option>
+                    <option value="civil-protection">الحماية المدنية</option>
+                    <option value="news">أخبار</option>
+                    <option value="insights">رؤى</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">الحالة</label>
+                  <select
+                    value={editingPost.status || 'draft'}
+                    onChange={(e) => setEditingPost({...editingPost, status: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  >
+                    <option value="draft">مسودة</option>
+                    <option value="published">منشور</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Save Button */}
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setEditingPost(null)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  إلغاء
+                </button>
+                <button
+                  onClick={savePost}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                >
+                  حفظ
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  // Certifications Management
+  const renderCertificationsManagement = () => (
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold">إدارة الشهادات المهنية</h2>
+        <button 
+          onClick={() => setEditingCert({ 
+            name: '', description: '', organization: '', year_obtained: '',
+            image_url: '', is_featured: false
+          })}
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex items-center gap-2"
+        >
+          <Plus className="h-4 w-4" />
+          إضافة شهادة جديدة
+        </button>
+      </div>
+
+      {/* Certifications Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {certifications.map((cert) => (
+          <div key={cert.id} className="bg-white rounded-lg shadow-md p-6">
+            {cert.image_url && (
+              <img 
+                src={cert.image_url} 
+                alt={cert.name}
+                className="w-full h-32 object-contain rounded-lg mb-4 bg-gray-50"
+              />
+            )}
+            <div className="flex justify-between items-start mb-4">
+              <Award className="h-8 w-8 text-blue-600" />
               <div className="flex gap-2">
-                <button className="text-blue-500 hover:text-blue-700">
+                <button 
+                  onClick={() => setEditingCert(cert)}
+                  className="text-blue-500 hover:text-blue-700"
+                >
                   <Edit3 className="h-4 w-4" />
                 </button>
-                <button className="text-red-500 hover:text-red-700">
+                <button 
+                  onClick={() => deleteCertification(cert.id)}
+                  className="text-red-500 hover:text-red-700"
+                >
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
             </div>
-            <h3 className="font-semibold mb-2">{post.title}</h3>
-            <p className="text-gray-600 text-sm mb-4">{post.excerpt}</p>
-            <div className="flex items-center text-xs text-gray-500">
-              <Calendar className="h-3 w-3 mr-1" />
-              {new Date(post.created_at).toLocaleDateString()}
-            </div>
+            <h3 className="font-semibold text-lg mb-2">{cert.name}</h3>
+            <p className="text-gray-600 mb-2">{cert.organization}</p>
+            {cert.year_obtained && (
+              <p className="text-sm text-gray-500">{cert.year_obtained}</p>
+            )}
+            {cert.is_featured && (
+              <span className="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded mt-2">
+                مميزة
+              </span>
+            )}
           </div>
         ))}
       </div>
+
+      {/* Certification Edit Modal */}
+      {editingCert && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold">
+                {editingCert.id ? 'تعديل الشهادة' : 'إضافة شهادة جديدة'}
+              </h3>
+              <button onClick={() => setEditingCert(null)}>
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Image Upload */}
+              <div>
+                <label className="block text-sm font-medium mb-2">صورة الشهادة</label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                  {editingCert.image_url ? (
+                    <div className="relative">
+                      <img 
+                        src={editingCert.image_url} 
+                        alt="Certificate"
+                        className="w-full h-48 object-contain rounded-lg bg-gray-50"
+                      />
+                      <button
+                        onClick={() => setEditingCert({...editingCert, image_url: ''})}
+                        className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="cursor-pointer flex flex-col items-center">
+                      <Award className="h-12 w-12 text-gray-400 mb-2" />
+                      <span className="text-gray-500">اضغط لرفع صورة الشهادة</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const url = await handleImageUpload(file);
+                            if (url) {
+                              setEditingCert({...editingCert, image_url: url});
+                            }
+                          }
+                        }}
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+
+              {/* Certificate Details */}
+              <div>
+                <label className="block text-sm font-medium mb-2">اسم الشهادة</label>
+                <input
+                  type="text"
+                  value={editingCert.name || ''}
+                  onChange={(e) => setEditingCert({...editingCert, name: e.target.value})}
+                  className="w-full p-3 border border-gray-300 rounded-lg"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">الجهة المانحة</label>
+                <input
+                  type="text"
+                  value={editingCert.organization || ''}
+                  onChange={(e) => setEditingCert({...editingCert, organization: e.target.value})}
+                  className="w-full p-3 border border-gray-300 rounded-lg"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">سنة الحصول</label>
+                  <input
+                    type="number"
+                    value={editingCert.year_obtained || ''}
+                    onChange={(e) => setEditingCert({...editingCert, year_obtained: parseInt(e.target.value)})}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  />
+                </div>
+                <div className="flex items-center">
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={editingCert.is_featured || false}
+                      onChange={(e) => setEditingCert({...editingCert, is_featured: e.target.checked})}
+                      className="mr-2"
+                    />
+                    شهادة مميزة
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">الوصف</label>
+                <textarea
+                  value={editingCert.description || ''}
+                  onChange={(e) => setEditingCert({...editingCert, description: e.target.value})}
+                  className="w-full p-3 border border-gray-300 rounded-lg"
+                  rows={3}
+                />
+              </div>
+
+              {/* Save Button */}
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setEditingCert(null)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  إلغاء
+                </button>
+                <button
+                  onClick={saveCertification}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                >
+                  حفظ
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 
-  // Messages Management
-  const renderMessagesManagement = () => (
+  // About Page Management
+  const renderAboutManagement = () => (
     <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6">رسائل العملاء</h2>
-      
-      <div className="space-y-4">
-        {messages.map((message: any) => (
-          <div key={message.id} className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h3 className="font-semibold">{message.name}</h3>
-                <p className="text-gray-600">{message.email}</p>
-              </div>
-              <span className={`px-2 py-1 rounded text-xs ${
-                message.status === 'new' ? 'bg-blue-100 text-blue-800' : 
-                message.status === 'read' ? 'bg-yellow-100 text-yellow-800' : 
-                'bg-green-100 text-green-800'
-              }`}>
-                {message.status === 'new' ? 'جديد' : 
-                 message.status === 'read' ? 'مقروء' : 'تم الرد'}
-              </span>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold">إدارة صفحة من نحن</h2>
+        <button 
+          onClick={() => setEditingTeamMember({ 
+            name: '', position: '', bio: '', image_url: '',
+            qualifications: [], experience_years: '', specializations: []
+          })}
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex items-center gap-2"
+        >
+          <Plus className="h-4 w-4" />
+          إضافة عضو فريق
+        </button>
+      </div>
+
+      {/* About Content */}
+      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h3 className="text-xl font-semibold mb-4">محتوى الصفحة</h3>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">عنوان الصفحة (عربي)</label>
+              <input
+                type="text"
+                value={aboutContent.title_ar || ''}
+                onChange={(e) => setAboutContent({...aboutContent, title_ar: e.target.value})}
+                className="w-full p-3 border border-gray-300 rounded-lg"
+              />
             </div>
-            <h4 className="font-medium mb-2">{message.subject}</h4>
-            <p className="text-gray-700 mb-4">{message.message}</p>
-            <div className="flex items-center justify-between text-sm text-gray-500">
-              <span>{new Date(message.created_at).toLocaleString()}</span>
-              <div className="flex gap-2">
-                <button className="text-blue-500 hover:text-blue-700">
-                  تحديث الحالة
-                </button>
-                <button className="text-green-500 hover:text-green-700">
-                  رد
-                </button>
+            <div>
+              <label className="block text-sm font-medium mb-2">Page Title (English)</label>
+              <input
+                type="text"
+                value={aboutContent.title_en || ''}
+                onChange={(e) => setAboutContent({...aboutContent, title_en: e.target.value})}
+                className="w-full p-3 border border-gray-300 rounded-lg"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">الوصف (عربي)</label>
+              <textarea
+                value={aboutContent.description_ar || ''}
+                onChange={(e) => setAboutContent({...aboutContent, description_ar: e.target.value})}
+                className="w-full p-3 border border-gray-300 rounded-lg"
+                rows={4}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Description (English)</label>
+              <textarea
+                value={aboutContent.description_en || ''}
+                onChange={(e) => setAboutContent({...aboutContent, description_en: e.target.value})}
+                className="w-full p-3 border border-gray-300 rounded-lg"
+                rows={4}
+              />
+            </div>
+          </div>
+
+          <button
+            onClick={saveAboutContent}
+            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
+          >
+            حفظ محتوى الصفحة
+          </button>
+        </div>
+      </div>
+
+      {/* Team Members */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {teamMembers.map((member) => (
+          <div key={member.id} className="bg-white rounded-lg shadow-md p-6">
+            {member.image_url && (
+              <img 
+                src={member.image_url} 
+                alt={member.name}
+                className="w-24 h-24 rounded-full mx-auto mb-4 object-cover"
+              />
+            )}
+            <div className="text-center">
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg">{member.name}</h3>
+                  <p className="text-blue-600 font-medium">{member.position}</p>
+                </div>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => setEditingTeamMember(member)}
+                    className="text-blue-500 hover:text-blue-700"
+                  >
+                    <Edit3 className="h-4 w-4" />
+                  </button>
+                  <button 
+                    onClick={() => deleteTeamMember(member.id)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
+              <p className="text-gray-600 text-sm">{member.bio}</p>
+              {member.experience_years && (
+                <p className="text-sm text-gray-500 mt-2">
+                  {member.experience_years} سنة خبرة
+                </p>
+              )}
             </div>
           </div>
         ))}
       </div>
+
+      {/* Team Member Edit Modal */}
+      {editingTeamMember && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold">
+                {editingTeamMember.id ? 'تعديل عضو الفريق' : 'إضافة عضو فريق جديد'}
+              </h3>
+              <button onClick={() => setEditingTeamMember(null)}>
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Image Upload */}
+              <div>
+                <label className="block text-sm font-medium mb-2">صورة العضو</label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                  {editingTeamMember.image_url ? (
+                    <div className="relative">
+                      <img 
+                        src={editingTeamMember.image_url} 
+                        alt="Team Member"
+                        className="w-32 h-32 rounded-full mx-auto object-cover"
+                      />
+                      <button
+                        onClick={() => setEditingTeamMember({...editingTeamMember, image_url: ''})}
+                        className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="cursor-pointer flex flex-col items-center">
+                      <User className="h-12 w-12 text-gray-400 mb-2" />
+                      <span className="text-gray-500">اضغط لرفع صورة</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const url = await handleImageUpload(file);
+                            if (url) {
+                              setEditingTeamMember({...editingTeamMember, image_url: url});
+                            }
+                          }
+                        }}
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+
+              {/* Member Details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">الاسم</label>
+                  <input
+                    type="text"
+                    value={editingTeamMember.name || ''}
+                    onChange={(e) => setEditingTeamMember({...editingTeamMember, name: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">المنصب</label>
+                  <input
+                    type="text"
+                    value={editingTeamMember.position || ''}
+                    onChange={(e) => setEditingTeamMember({...editingTeamMember, position: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">النبذة الشخصية</label>
+                <textarea
+                  value={editingTeamMember.bio || ''}
+                  onChange={(e) => setEditingTeamMember({...editingTeamMember, bio: e.target.value})}
+                  className="w-full p-3 border border-gray-300 rounded-lg"
+                  rows={4}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">سنوات الخبرة</label>
+                <input
+                  type="number"
+                  value={editingTeamMember.experience_years || ''}
+                  onChange={(e) => setEditingTeamMember({...editingTeamMember, experience_years: parseInt(e.target.value)})}
+                  className="w-full p-3 border border-gray-300 rounded-lg"
+                />
+              </div>
+
+              {/* Save Button */}
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setEditingTeamMember(null)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  إلغاء
+                </button>
+                <button
+                  onClick={saveTeamMember}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                >
+                  حفظ
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
+
+  // Save functions
+  const saveService = async () => {
+    try {
+      if (editingService.id) {
+        await DatabaseService.updateService(editingService.id, editingService);
+        showMessage('تم تحديث الخدمة بنجاح');
+      } else {
+        await DatabaseService.createService(editingService);
+        showMessage('تم إضافة الخدمة بنجاح');
+      }
+      setEditingService(null);
+      loadAllData();
+    } catch (error) {
+      showMessage('خطأ في حفظ الخدمة', 'error');
+    }
+  };
+
+  const savePost = async () => {
+    try {
+      if (editingPost.id) {
+        await DatabaseService.updateBlogPost(editingPost.id, editingPost);
+        showMessage('تم تحديث المقال بنجاح');
+      } else {
+        await DatabaseService.createBlogPost(editingPost);
+        showMessage('تم إضافة المقال بنجاح');
+      }
+      setEditingPost(null);
+      loadAllData();
+    } catch (error) {
+      showMessage('خطأ في حفظ المقال', 'error');
+    }
+  };
+
+  const saveCertification = async () => {
+    try {
+      if (editingCert.id) {
+        await DatabaseService.updateCertification(editingCert.id, editingCert);
+        showMessage('تم تحديث الشهادة بنجاح');
+      } else {
+        await DatabaseService.createCertification(editingCert);
+        showMessage('تم إضافة الشهادة بنجاح');
+      }
+      setEditingCert(null);
+      loadAllData();
+    } catch (error) {
+      showMessage('خطأ في حفظ الشهادة', 'error');
+    }
+  };
+
+  const saveTeamMember = async () => {
+    try {
+      if (editingTeamMember.id) {
+        await DatabaseService.updateTeamMember(editingTeamMember.id, editingTeamMember);
+        showMessage('تم تحديث عضو الفريق بنجاح');
+      } else {
+        await DatabaseService.createTeamMember(editingTeamMember);
+        showMessage('تم إضافة عضو الفريق بنجاح');
+      }
+      setEditingTeamMember(null);
+      loadAllData();
+    } catch (error) {
+      showMessage('خطأ في حفظ عضو الفريق', 'error');
+    }
+  };
+
+  const saveAboutContent = async () => {
+    try {
+      await DatabaseService.updateContentSection('about_content', JSON.stringify(aboutContent));
+      showMessage('تم حفظ محتوى صفحة من نحن بنجاح');
+    } catch (error) {
+      showMessage('خطأ في حفظ المحتوى', 'error');
+    }
+  };
+
+  // Delete functions
+  const deleteService = async (id: string) => {
+    if (confirm('هل أنت متأكد من حذف هذه الخدمة؟')) {
+      try {
+        await DatabaseService.deleteService(id);
+        showMessage('تم حذف الخدمة بنجاح');
+        loadAllData();
+      } catch (error) {
+        showMessage('خطأ في حذف الخدمة', 'error');
+      }
+    }
+  };
+
+  const deletePost = async (id: string) => {
+    if (confirm('هل أنت متأكد من حذف هذا المقال؟')) {
+      try {
+        await DatabaseService.deleteBlogPost(id);
+        showMessage('تم حذف المقال بنجاح');
+        loadAllData();
+      } catch (error) {
+        showMessage('خطأ في حذف المقال', 'error');
+      }
+    }
+  };
+
+  const deleteCertification = async (id: string) => {
+    if (confirm('هل أنت متأكد من حذف هذه الشهادة؟')) {
+      try {
+        await DatabaseService.deleteCertification(id);
+        showMessage('تم حذف الشهادة بنجاح');
+        loadAllData();
+      } catch (error) {
+        showMessage('خطأ في حذف الشهادة', 'error');
+      }
+    }
+  };
+
+  const deleteTeamMember = async (id: string) => {
+    if (confirm('هل أنت متأكد من حذف عضو الفريق؟')) {
+      try {
+        await DatabaseService.deleteTeamMember(id);
+        showMessage('تم حذف عضو الفريق بنجاح');
+        loadAllData();
+      } catch (error) {
+        showMessage('خطأ في حذف عضو الفريق', 'error');
+      }
+    }
+  };
 
   const dashboardSections = [
-    { id: 'home', label: 'الصفحة الرئيسية', icon: Home },
+    { id: 'services', label: 'إدارة الخدمات', icon: Shield },
+    { id: 'blog', label: 'إدارة المدونة', icon: FileText },
     { id: 'certifications', label: 'الشهادات المهنية', icon: Award },
-    { id: 'services', label: 'الخدمات', icon: Shield },
-    { id: 'testimonials', label: 'آراء العملاء', icon: Star },
-    { id: 'blog', label: 'المدونة', icon: FileText },
+    { id: 'about', label: 'صفحة من نحن', icon: Users },
     { id: 'messages', label: 'الرسائل', icon: MessageSquare },
     { id: 'settings', label: 'الإعدادات', icon: Settings },
   ];
@@ -493,12 +1207,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
           {!loading && (
             <>
-              {activeSection === 'home' && renderHomeManagement()}
-              {activeSection === 'certifications' && renderCertificationsManagement()}
               {activeSection === 'services' && renderServicesManagement()}
-              {activeSection === 'testimonials' && renderTestimonialsManagement()}
               {activeSection === 'blog' && renderBlogManagement()}
-              {activeSection === 'messages' && renderMessagesManagement()}
+              {activeSection === 'certifications' && renderCertificationsManagement()}
+              {activeSection === 'about' && renderAboutManagement()}
             </>
           )}
         </main>
