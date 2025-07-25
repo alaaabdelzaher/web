@@ -1020,6 +1020,22 @@ export class DatabaseService {
     }
   }
 
+  static async getTeamMemberById(id: string) {
+    try {
+      const { data, error } = await supabase
+        .from('team_members')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching team member:', error);
+      return null;
+    }
+  }
+
   // Testimonials
   static async getTestimonials() {
     try {
