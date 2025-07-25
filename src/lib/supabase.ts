@@ -130,6 +130,16 @@ export interface ContactMessage {
   replied_by?: string;
 }
 
+export interface Certification {
+  id: string;
+  name: string;
+  description?: string;
+  organization: string;
+  year_obtained?: number;
+  is_featured: boolean;
+  created_at: string;
+}
+
 // Database Service Functions
 export class DatabaseService {
   // Users
@@ -847,33 +857,53 @@ export class DatabaseService {
   }
 
   // Certifications
-  static async createCertification(cert: Partial<any>) {
+  static async createCertification(cert: Partial<Certification>) {
     try {
+      // Only include fields that exist in the database schema
+      const allowedFields = ['name', 'description', 'organization', 'year_obtained', 'is_featured'];
+      
+      const filteredCert = Object.keys(cert)
+        .filter(key => allowedFields.includes(key))
+        .reduce((obj, key) => {
+          obj[key] = cert[key];
+          return obj;
+        }, {} as any);
+
       const { data, error } = await supabase
         .from('certifications')
-        .insert(cert)
+        .insert(filteredCert)
         .select()
         .single();
       
       if (error) throw error;
-      return data;
+      return data as Certification;
     } catch (error) {
       console.error('Error creating certification:', error);
       throw error;
     }
   }
 
-  static async updateCertification(id: string, updates: Partial<any>) {
+  static async updateCertification(id: string, updates: Partial<Certification>) {
     try {
+      // Only include fields that exist in the database schema
+      const allowedFields = ['name', 'description', 'organization', 'year_obtained', 'is_featured'];
+      
+      const filteredUpdates = Object.keys(updates)
+        .filter(key => allowedFields.includes(key))
+        .reduce((obj, key) => {
+          obj[key] = updates[key];
+          return obj;
+        }, {} as any);
+
       const { data, error } = await supabase
         .from('certifications')
-        .update(updates)
+        .update(filteredUpdates)
         .eq('id', id)
         .select()
         .single();
       
       if (error) throw error;
-      return data;
+      return data as Certification;
     } catch (error) {
       console.error('Error updating certification:', error);
       throw error;
@@ -984,7 +1014,7 @@ export class DatabaseService {
         .order('created_at');
       
       if (error) throw error;
-      return data || [];
+      return (data || []) as Certification[];
     } catch (error) {
       console.error('Error fetching certifications:', error);
       return [];
