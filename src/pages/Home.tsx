@@ -7,12 +7,33 @@ import { DatabaseService } from '../lib/supabase';
 const Home = () => {
   const { language, t } = useLanguage();
   const [sections, setSections] = React.useState<any[]>([]);
+  const [certifications, setCertifications] = React.useState<any[]>([]);
+  const [services, setServices] = React.useState<any[]>([]);
+  const [testimonials, setTestimonials] = React.useState<any[]>([]);
+  const [stats, setStats] = React.useState<any[]>([]);
 
   React.useEffect(() => {
     const loadSections = async () => {
       try {
-        const data = await DatabaseService.getContentSections();
-        setSections(data);
+        const [
+          sectionsData,
+          certificationsData,
+          servicesData,
+          testimonialsData,
+          statsData
+        ] = await Promise.all([
+          DatabaseService.getContentSections(),
+          DatabaseService.getCertifications(),
+          DatabaseService.getServices(),
+          DatabaseService.getTestimonials(),
+          DatabaseService.getStats()
+        ]);
+        
+        setSections(sectionsData);
+        setCertifications(certificationsData);
+        setServices(servicesData);
+        setTestimonials(testimonialsData);
+        setStats(statsData);
       } catch (error) {
         console.error('Error loading sections:', error);
       }
@@ -84,33 +105,16 @@ const Home = () => {
             <p className="text-xl text-gray-600">{t('home.certifications.subtitle')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white p-6 rounded-lg shadow-md text-center">
-              <Award className="h-12 w-12 text-blue-800 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">
-                {language === 'ar' ? 'محقق حرائق معتمد' : 'Certified Fire Investigator'}
-              </h3>
-              <p className="text-gray-600">
-                {language === 'ar' ? 'الجمعية الدولية لرؤساء الإطفاء' : 'International Association of Fire Chiefs'}
-              </p>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow-md text-center">
-              <Award className="h-12 w-12 text-blue-800 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">
-                {language === 'ar' ? 'أخصائي علوم جنائية' : 'Forensic Science Specialist'}
-              </h3>
-              <p className="text-gray-600">
-                {language === 'ar' ? 'المجلس الأمريكي للجريمة' : 'American Board of Criminalistics'}
-              </p>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow-md text-center">
-              <Award className="h-12 w-12 text-blue-800 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">
-                {language === 'ar' ? 'خبير متفجرات' : 'Explosives Expert'}
-              </h3>
-              <p className="text-gray-600">
-                {language === 'ar' ? 'الجمعية الدولية لفنيي القنابل' : 'International Association of Bomb Technicians'}
-              </p>
-            </div>
+            {certifications.slice(0, 3).map((cert, index) => (
+              <div key={cert.id} className="bg-white p-6 rounded-lg shadow-md text-center">
+                <Award className="h-12 w-12 text-blue-800 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2">{cert.name}</h3>
+                <p className="text-gray-600">{cert.organization}</p>
+                {cert.year_obtained && (
+                  <p className="text-sm text-gray-500 mt-2">{cert.year_obtained}</p>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -123,98 +127,27 @@ const Home = () => {
             <p className="text-xl text-gray-600">{t('home.services.subtitle')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-lg shadow-lg border border-gray-200 hover:shadow-xl transition-shadow">
-              <Shield className="h-12 w-12 text-blue-800 mb-4" />
-              <h3 className="text-2xl font-semibold mb-4">{t('services.civil.title')}</h3>
-              <ul className="space-y-2 text-gray-600 mb-6">
-                <li className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  <span className="text-sm">
-                    {language === 'ar' ? 'تقارير فحص المباني' : 'Building inspection reports'}
-                  </span>
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  <span className="text-sm">
-                    {language === 'ar' ? 'تحليل أسباب الحرائق' : 'Fire cause analysis'}
-                  </span>
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  <span className="text-sm">
-                    {language === 'ar' ? 'التخطيط للطوارئ' : 'Emergency planning'}
-                  </span>
-                </li>
-              </ul>
-              <Link
-                to="/services/civil-protection"
-                className="inline-flex items-center text-blue-800 hover:text-blue-900 font-semibold"
-              >
-                {t('common.learnMore')} <ArrowRight className="h-4 w-4 ml-1" />
-              </Link>
-            </div>
-
-            <div className="bg-white p-8 rounded-lg shadow-lg border border-gray-200 hover:shadow-xl transition-shadow">
-              <Users className="h-12 w-12 text-blue-800 mb-4" />
-              <h3 className="text-2xl font-semibold mb-4">{t('services.forensics.title')}</h3>
-              <ul className="space-y-2 text-gray-600 mb-6">
-                <li className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  <span className="text-sm">
-                    {language === 'ar' ? 'تحليل مسرح الجريمة' : 'Crime scene analysis'}
-                  </span>
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  <span className="text-sm">
-                    {language === 'ar' ? 'فحص الأدلة المادية' : 'Physical evidence examination'}
-                  </span>
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  <span className="text-sm">
-                    {language === 'ar' ? 'تحديد سبب الوفاة' : 'Death cause determination'}
-                  </span>
-                </li>
-              </ul>
-              <Link
-                to="/services/forensics"
-                className="inline-flex items-center text-blue-800 hover:text-blue-900 font-semibold"
-              >
-                {t('common.learnMore')} <ArrowRight className="h-4 w-4 ml-1" />
-              </Link>
-            </div>
-
-            <div className="bg-white p-8 rounded-lg shadow-lg border border-gray-200 hover:shadow-xl transition-shadow">
-              <Award className="h-12 w-12 text-blue-800 mb-4" />
-              <h3 className="text-2xl font-semibold mb-4">{t('services.explosives.title')}</h3>
-              <ul className="space-y-2 text-gray-600 mb-6">
-                <li className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  <span className="text-sm">
-                    {language === 'ar' ? 'تحليل المكونات' : 'Components analysis'}
-                  </span>
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  <span className="text-sm">
-                    {language === 'ar' ? 'التقارير الفنية' : 'Technical reports'}
-                  </span>
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  <span className="text-sm">
-                    {language === 'ar' ? 'الشهادة الخبيرة' : 'Expert testimony'}
-                  </span>
-                </li>
-              </ul>
-              <Link
-                to="/services/explosives-analysis"
-                className="inline-flex items-center text-blue-800 hover:text-blue-900 font-semibold"
-              >
-                {t('common.learnMore')} <ArrowRight className="h-4 w-4 ml-1" />
-              </Link>
-            </div>
+            {services.slice(0, 3).map((service, index) => (
+              <div key={service.id} className="bg-white p-8 rounded-lg shadow-lg border border-gray-200 hover:shadow-xl transition-shadow">
+                <Shield className="h-12 w-12 text-blue-800 mb-4" />
+                <h3 className="text-2xl font-semibold mb-4">{service.title}</h3>
+                <p className="text-gray-600 mb-6">{service.description}</p>
+                <ul className="space-y-2 text-gray-600 mb-6">
+                  {service.features?.slice(0, 3).map((feature: string, idx: number) => (
+                    <li key={idx} className="flex items-center">
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                      <span className="text-sm">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  to={`/services/${service.category}`}
+                  className="inline-flex items-center text-blue-800 hover:text-blue-900 font-semibold"
+                >
+                  {t('common.learnMore')} <ArrowRight className="h-4 w-4 ml-1" />
+                </Link>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -227,38 +160,21 @@ const Home = () => {
             <p className="text-xl text-gray-600">{t('home.testimonials.subtitle')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-white p-8 rounded-lg shadow-md">
-              <div className="flex items-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-5 w-5 text-yellow-500 fill-current" />
-                ))}
+            {testimonials.slice(0, 2).map((testimonial, index) => (
+              <div key={testimonial.id} className="bg-white p-8 rounded-lg shadow-md">
+                <div className="flex items-center mb-4">
+                  {[...Array(testimonial.rating || 5)].map((_, i) => (
+                    <Star key={i} className="h-5 w-5 text-yellow-500 fill-current" />
+                  ))}
+                </div>
+                <p className="text-gray-600 mb-4">"{testimonial.testimonial}"</p>
+                <div className="font-semibold">
+                  — {testimonial.client_name}
+                  {testimonial.client_title && `, ${testimonial.client_title}`}
+                  {testimonial.company && ` at ${testimonial.company}`}
+                </div>
               </div>
-              <p className="text-gray-600 mb-4">
-                {language === 'ar' ? 
-                  '"قدمت فورنسيك برو تحليلاً جنائياً استثنائياً كان بالغ الأهمية لقضيتنا. تقاريرهم المفصلة وشهادتهم الخبيرة كانت أساسية في تحقيق العدالة."' :
-                  '"ForensicPro provided exceptional forensic analysis that was crucial to our case. Their detailed reports and expert testimony were instrumental in achieving justice."'
-                }
-              </p>
-              <div className="font-semibold">
-                {language === 'ar' ? '— سارة جونسون، المدعي العام' : '— Sarah Johnson, District Attorney'}
-              </div>
-            </div>
-            <div className="bg-white p-8 rounded-lg shadow-md">
-              <div className="flex items-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-5 w-5 text-yellow-500 fill-current" />
-                ))}
-              </div>
-              <p className="text-gray-600 mb-4">
-                {language === 'ar' ? 
-                  '"ساعدتنا استشارة الحماية المدنية في تنفيذ بروتوكولات طوارئ شاملة. خبرتهم وفرت علينا الوقت ومنعت كوارث محتملة."' :
-                  '"The civil protection consultation helped us implement comprehensive emergency protocols. Their expertise saved us time and potentially prevented disasters."'
-                }
-              </p>
-              <div className="font-semibold">
-                {language === 'ar' ? '— مايكل تشين، مدير المرافق' : '— Michael Chen, Facility Manager'}
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
