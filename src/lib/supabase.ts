@@ -1090,6 +1090,43 @@ export class DatabaseService {
     }
   }
 
+  static async getHomepageContent() {
+    try {
+      const { data, error } = await supabase
+        .from('content_sections')
+        .select('*')
+        .like('section_key', 'homepage_%')
+        .eq('is_active', true)
+        .order('sort_order');
+      
+      if (error) throw error;
+      return data as ContentSection[];
+    } catch (error) {
+      console.error('Error fetching homepage content:', error);
+      return [];
+    }
+  }
+
+  static async updateHomepageSection(sectionKey: string, content: any) {
+    try {
+      const { data, error } = await supabase
+        .from('content_sections')
+        .update({ 
+          content: JSON.stringify(content),
+          updated_at: new Date().toISOString() 
+        })
+        .eq('section_key', sectionKey)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data as ContentSection;
+    } catch (error) {
+      console.error('Error updating homepage section:', error);
+      throw error;
+    }
+  }
+
   // Service Pages Content
   static async getServicePageContent(serviceType: string) {
     try {
