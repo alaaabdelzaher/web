@@ -73,7 +73,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       setCertifications(certsData);
       setTeamMembers(teamData2);
       setContactMessages(messagesData);
-      setHomepageContent(homepageData);
       
       if (aboutData2?.content) {
         try {
@@ -846,6 +845,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
           </div>
         </div>
       )}
+    </div>
+  );
+
+  const renderHomepageManagement = () => (
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-6">إدارة الصفحة الرئيسية</h2>
+      {/* Homepage management content */}
     </div>
   );
 
@@ -1651,6 +1657,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
               {activeSection === 'certifications' && renderCertificationsManagement()}
               {activeSection === 'about' && renderAboutManagement()}
               {activeSection === 'messages' && renderMessagesManagement()}
+              {activeSection === 'homepage' && renderHomepageManagement()}
             </>
           )}
         </main>

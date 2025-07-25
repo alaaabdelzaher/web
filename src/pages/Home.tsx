@@ -212,22 +212,24 @@ const Home = () => {
       {/* CTA Section */}
       <section className="py-16 bg-blue-800 text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold mb-6">{t('home.cta.final.title')}</h2>
+          <h2 className="text-3xl font-bold mb-6">
+            {getHomepageContent('homepage_cta_final', 'title', t('home.cta.final.title'))}
+          </h2>
           <p className="text-xl text-blue-100 mb-8">
-            {t('home.cta.final.subtitle')}
+            {getHomepageContent('homepage_cta_final', 'subtitle', t('home.cta.final.subtitle'))}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/contact"
               className="bg-orange-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors"
             >
-              {t('home.cta.consultation')}
+              {getHomepageContent('homepage_cta_final', 'cta1_text', t('home.cta.consultation'))}
             </Link>
             <Link
               to="/contact"
               className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-800 transition-colors"
             >
-              {t('home.cta.contact')}
+              {getHomepageContent('homepage_cta_final', 'cta2_text', t('home.cta.contact'))}
             </Link>
           </div>
         </div>
