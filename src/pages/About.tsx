@@ -2,9 +2,48 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Award, Users, Target, CheckCircle } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { DatabaseService } from '../lib/supabase';
 
 const About = () => {
   const { language, t } = useLanguage();
+  const [teamMembers, setTeamMembers] = React.useState<any[]>([]);
+  const [aboutContent, setAboutContent] = React.useState<any>({});
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const [teamData, aboutData] = await Promise.all([
+          DatabaseService.getTeamMembers(),
+          DatabaseService.getContentSection('about_content')
+        ]);
+        
+        setTeamMembers(teamData);
+        
+        if (aboutData?.content) {
+          try {
+            setAboutContent(JSON.parse(aboutData.content));
+          } catch {
+            setAboutContent({});
+          }
+        }
+      } catch (error) {
+        console.error('Error loading about data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen py-16 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen py-16" dir={language === 'ar' ? 'rtl' : 'ltr'}>

@@ -14,6 +14,7 @@ const Blog = () => {
   React.useEffect(() => {
     const loadPosts = async () => {
       try {
+        setLoading(true);
         const data = await DatabaseService.getPublishedBlogPosts();
         setPosts(data);
       } catch (error) {
@@ -30,7 +31,7 @@ const Blog = () => {
 
   const filteredPosts = posts.filter(post => {
     const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         post.excerpt.toLowerCase().includes(searchTerm.toLowerCase());
+                         (post.excerpt && post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesCategory = selectedCategory === 'all' || post.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -85,14 +86,24 @@ const Blog = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredPosts.map(post => (
             <article key={post.id} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-              <div className="h-48 bg-gradient-to-r from-blue-800 to-blue-900 flex items-center justify-center">
-                <FileText className="h-16 w-16 text-white" />
-              </div>
+              {post.featured_image ? (
+                <div className="h-48 overflow-hidden">
+                  <img 
+                    src={post.featured_image} 
+                    alt={post.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="h-48 bg-gradient-to-r from-blue-800 to-blue-900 flex items-center justify-center">
+                  <FileText className="h-16 w-16 text-white" />
+                </div>
+              )}
               <div className="p-6">
                 <div className="flex items-center space-x-4 mb-3">
                   <div className="flex items-center space-x-1 text-sm text-gray-500">
                     <Calendar className="h-4 w-4" />
-                    <span>{new Date(post.created_at).toLocaleDateString()}</span>
+                    <span>{new Date(post.published_at || post.created_at).toLocaleDateString()}</span>
                   </div>
                   <div className="flex items-center space-x-1 text-sm text-gray-500">
                     <User className="h-4 w-4" />
@@ -103,22 +114,24 @@ const Blog = () => {
                 <div className="flex items-center space-x-2 mb-3">
                   <Tag className="h-4 w-4 text-blue-800" />
                   <span className="text-sm text-blue-800 font-medium">{post.category}</span>
-                  <span className="text-sm text-gray-500">• {post.read_time} دقيقة قراءة</span>
+                  <span className="text-sm text-gray-500">• {post.read_time} {language === 'ar' ? 'دقيقة قراءة' : 'min read'}</span>
                 </div>
                 
                 <h2 className="text-xl font-bold text-gray-900 mb-3 leading-tight">
                   {post.title}
                 </h2>
                 
-                <p className="text-gray-600 mb-4 line-clamp-3">
-                  {post.excerpt}
-                </p>
+                {post.excerpt && (
+                  <p className="text-gray-600 mb-4 line-clamp-3">
+                    {post.excerpt}
+                  </p>
+                )}
                 
                 <Link
                   to={`/blog/${post.id}`}
                   className="inline-flex items-center text-blue-800 hover:text-blue-900 font-semibold transition-colors"
                 >
-                  اقرأ المزيد
+                  {language === 'ar' ? 'اقرأ المزيد' : 'Read More'}
                   <ArrowRight className="h-4 w-4 ml-1" />
                 </Link>
               </div>
@@ -129,24 +142,24 @@ const Blog = () => {
         {/* No Results */}
         {filteredPosts.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No articles found matching your search criteria.</p>
+            <p className="text-gray-500 text-lg">{t('blog.noResults')}</p>
           </div>
         )}
 
         {/* Newsletter Signup */}
         <div className="mt-16 bg-blue-800 text-white rounded-lg p-8 text-center">
-          <h2 className="text-3xl font-bold mb-4">Stay Updated</h2>
+          <h2 className="text-3xl font-bold mb-4">{t('blog.newsletter.title')}</h2>
           <p className="text-xl text-blue-100 mb-6">
-            Subscribe to our newsletter for the latest insights and updates from our expert team.
+            {t('blog.newsletter.subtitle')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
             <input
               type="email"
-              placeholder="Enter your email"
+              placeholder={t('blog.newsletter.placeholder')}
               className="flex-1 px-4 py-3 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300"
             />
             <button className="bg-orange-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors">
-              Subscribe
+              {t('blog.newsletter.subscribe')}
             </button>
           </div>
         </div>

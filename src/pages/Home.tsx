@@ -6,15 +6,26 @@ import { DatabaseService } from '../lib/supabase';
 
 const Home = () => {
   const { language, t } = useLanguage();
-  const [homeContent, setHomeContent] = React.useState<any>({});
+  const [loading, setLoading] = React.useState(true);
   const [certifications, setCertifications] = React.useState<any[]>([]);
   const [services, setServices] = React.useState<any[]>([]);
   const [testimonials, setTestimonials] = React.useState<any[]>([]);
   const [stats, setStats] = React.useState<any[]>([]);
+  const [homeContent, setHomeContent] = React.useState<any>({
+    hero_title_ar: 'فورنسيك برو - خبرة موثوقة في الحماية المدنية والطب الشرعي',
+    hero_title_en: 'ForensicPro - Trusted Expertise in Civil Protection & Forensics',
+    hero_subtitle_ar: 'مع أكثر من 20 عاماً من الخبرة، نقدم تحليلاً شرعياً شاملاً وخدمات الحماية المدنية والاستشارات الخبيرة للحالات القانونية والطوارئ.',
+    hero_subtitle_en: 'With over 20 years of experience, we provide comprehensive forensic analysis, civil protection services, and expert consultation for legal and emergency situations.',
+    cta1_text_ar: 'احجز استشارة',
+    cta1_text_en: 'Book Consultation',
+    cta2_text_ar: 'اتصل بنا',
+    cta2_text_en: 'Contact Us'
+  });
 
   React.useEffect(() => {
     const loadData = async () => {
       try {
+        setLoading(true);
         const [
           homeData,
           certificationsData,
@@ -32,9 +43,10 @@ const Home = () => {
         // Parse home content
         if (homeData?.content) {
           try {
-            setHomeContent(JSON.parse(homeData.content));
+            const parsedContent = JSON.parse(homeData.content);
+            setHomeContent(prev => ({ ...prev, ...parsedContent }));
           } catch {
-            setHomeContent({});
+            // Keep default content if parsing fails
           }
         }
         
@@ -44,6 +56,8 @@ const Home = () => {
         setStats(statsData);
       } catch (error) {
         console.error('Error loading data:', error);
+      } finally {
+        setLoading(false);
       }
     };
     loadData();
@@ -51,8 +65,16 @@ const Home = () => {
 
   const getHomeContent = (key: string, fallback: string) => {
     const langKey = `${key}_${language}`;
-    return homeContent[langKey] || fallback;
+    return homeContent[langKey] || homeContent[key] || fallback;
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen" dir={language === 'ar' ? 'rtl' : 'ltr'}>

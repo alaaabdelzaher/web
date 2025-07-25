@@ -340,9 +340,29 @@ export class DatabaseService {
 
   static async updateBlogPost(id: string, updates: Partial<BlogPost>) {
     try {
+      // التأكد من وجود البيانات المطلوبة
+      if (!updates.title || !updates.content || !updates.author_name || !updates.category) {
+        throw new Error('Missing required fields');
+      }
+
       const { data, error } = await supabase
         .from('blog_posts')
-        .update({ ...updates, updated_at: new Date().toISOString() })
+        .update({ 
+          title: updates.title,
+          slug: updates.slug,
+          excerpt: updates.excerpt || '',
+          content: updates.content,
+          featured_image: updates.featured_image || '',
+          author_name: updates.author_name,
+          category: updates.category,
+          tags: updates.tags || [],
+          status: updates.status || 'draft',
+          read_time: updates.read_time || 5,
+          meta_description: updates.meta_description || '',
+          seo_keywords: updates.seo_keywords || [],
+          published_at: updates.status === 'published' ? (updates.published_at || new Date().toISOString()) : null,
+          updated_at: new Date().toISOString() 
+        })
         .eq('id', id)
         .select()
         .single();

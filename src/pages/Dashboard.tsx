@@ -513,6 +513,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                     value={editingPost.author_name || ''}
                     onChange={(e) => setEditingPost({...editingPost, author_name: e.target.value})}
                     className="w-full p-3 border border-gray-300 rounded-lg"
+                    required
                   />
                 </div>
                 <div>
@@ -521,12 +522,16 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                     value={editingPost.category || ''}
                     onChange={(e) => setEditingPost({...editingPost, category: e.target.value})}
                     className="w-full p-3 border border-gray-300 rounded-lg"
+                    required
                   >
                     <option value="">اختر التصنيف</option>
                     <option value="forensics">الطب الشرعي</option>
                     <option value="civil-protection">الحماية المدنية</option>
+                    <option value="explosives">تحليل المتفجرات</option>
                     <option value="news">أخبار</option>
                     <option value="insights">رؤى</option>
+                    <option value="case-studies">دراسات حالة</option>
+                    <option value="technology">تقنيات</option>
                   </select>
                 </div>
                 <div>
@@ -538,7 +543,34 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                   >
                     <option value="draft">مسودة</option>
                     <option value="published">منشور</option>
+                    <option value="archived">مؤرشف</option>
                   </select>
+                </div>
+              </div>
+
+              {/* Additional Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">وقت القراءة (بالدقائق)</label>
+                  <input
+                    type="number"
+                    value={editingPost.read_time || 5}
+                    onChange={(e) => setEditingPost({...editingPost, read_time: parseInt(e.target.value) || 5})}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                    min="1"
+                    max="60"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">وصف SEO</label>
+                  <input
+                    type="text"
+                    value={editingPost.meta_description || ''}
+                    onChange={(e) => setEditingPost({...editingPost, meta_description: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                    placeholder="وصف مختصر للمقال لمحركات البحث"
+                    maxLength="160"
+                  />
                 </div>
               </div>
 

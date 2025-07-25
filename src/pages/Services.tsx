@@ -2,9 +2,35 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Shield, Users, Award, ArrowRight } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { DatabaseService } from '../lib/supabase';
 
 const Services = () => {
   const { language, t } = useLanguage();
+  const [services, setServices] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const loadServices = async () => {
+      try {
+        setLoading(true);
+        const data = await DatabaseService.getServices();
+        setServices(data);
+      } catch (error) {
+        console.error('Error loading services:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadServices();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen py-16 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen py-16" dir={language === 'ar' ? 'rtl' : 'ltr'}>
@@ -17,140 +43,43 @@ const Services = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Civil Protection */}
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-            <div className="bg-gradient-to-r from-blue-800 to-blue-900 p-6">
-              <Shield className="h-12 w-12 text-white mb-4" />
-              <h2 className="text-2xl font-bold text-white">{t('services.civil.title')}</h2>
-            </div>
-            <div className="p-6">
-              <p className="text-gray-600 mb-6">
-                {t('services.civil.desc')}
-              </p>
-              <div className="space-y-3 mb-6">
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-blue-800 rounded-full mt-2"></div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Building Inspection Reports</h3>
-                    <p className="text-sm text-gray-600">Detailed structural and safety assessments</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-blue-800 rounded-full mt-2"></div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Fire Cause Analysis</h3>
-                    <p className="text-sm text-gray-600">Expert investigation of fire origins and causes</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-blue-800 rounded-full mt-2"></div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Emergency Planning</h3>
-                    <p className="text-sm text-gray-600">Comprehensive emergency response protocols</p>
-                  </div>
-                </div>
+          {services.map((service, index) => (
+            <div key={service.id} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+              <div className="bg-gradient-to-r from-blue-800 to-blue-900 p-6">
+                {service.image_url ? (
+                  <img 
+                    src={service.image_url} 
+                    alt={service.title}
+                    className="h-12 w-12 text-white mb-4 object-contain"
+                  />
+                ) : (
+                  <Shield className="h-12 w-12 text-white mb-4" />
+                )}
+                <h2 className="text-2xl font-bold text-white">{service.title}</h2>
               </div>
-              <Link
-                to="/services/civil-protection"
-                className="inline-flex items-center text-blue-800 hover:text-blue-900 font-semibold"
-              >
-                Learn More <ArrowRight className="h-4 w-4 ml-1" />
-              </Link>
-            </div>
-          </div>
-
-          {/* Forensics */}
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-            <div className="bg-gradient-to-r from-blue-800 to-blue-900 p-6">
-              <Users className="h-12 w-12 text-white mb-4" />
-              <h2 className="text-2xl font-bold text-white">Forensics</h2>
-            </div>
-            <div className="p-6">
-              <p className="text-gray-600 mb-6">
-                Professional forensic analysis services including crime scene investigation, 
-                evidence examination, and expert testimony for legal proceedings.
-              </p>
-              <div className="space-y-3 mb-6">
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-blue-800 rounded-full mt-2"></div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Crime Scene Analysis</h3>
-                    <p className="text-sm text-gray-600">Systematic investigation and documentation</p>
-                  </div>
+              <div className="p-6">
+                <p className="text-gray-600 mb-6">
+                  {service.description}
+                </p>
+                <div className="space-y-3 mb-6">
+                  {service.features?.slice(0, 4).map((feature: string, idx: number) => (
+                    <div key={idx} className="flex items-start space-x-3">
+                      <div className="w-2 h-2 bg-blue-800 rounded-full mt-2"></div>
+                      <div>
+                        <p className="text-sm text-gray-600">{feature}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-blue-800 rounded-full mt-2"></div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Physical Evidence Examination</h3>
-                    <p className="text-sm text-gray-600">Laboratory analysis of physical materials</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-blue-800 rounded-full mt-2"></div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Death Cause Determination</h3>
-                    <p className="text-sm text-gray-600">Expert analysis of mortality factors</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-blue-800 rounded-full mt-2"></div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Forgery Investigation</h3>
-                    <p className="text-sm text-gray-600">Document and signature authenticity analysis</p>
-                  </div>
-                </div>
+                <Link
+                  to={`/services/${service.category}`}
+                  className="inline-flex items-center text-blue-800 hover:text-blue-900 font-semibold"
+                >
+                  {t('common.learnMore')} <ArrowRight className="h-4 w-4 ml-1" />
+                </Link>
               </div>
-              <Link
-                to="/services/forensics"
-                className="inline-flex items-center text-blue-800 hover:text-blue-900 font-semibold"
-              >
-                Learn More <ArrowRight className="h-4 w-4 ml-1" />
-              </Link>
             </div>
-          </div>
-
-          {/* Explosives Analysis */}
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-            <div className="bg-gradient-to-r from-blue-800 to-blue-900 p-6">
-              <Award className="h-12 w-12 text-white mb-4" />
-              <h2 className="text-2xl font-bold text-white">Explosives Analysis</h2>
-            </div>
-            <div className="p-6">
-              <p className="text-gray-600 mb-6">
-                Specialized explosives analysis services including component identification, 
-                technical reporting, and expert consultation for legal and investigative purposes.
-              </p>
-              <div className="space-y-3 mb-6">
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-blue-800 rounded-full mt-2"></div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Components Analysis</h3>
-                    <p className="text-sm text-gray-600">Detailed examination of explosive materials</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-blue-800 rounded-full mt-2"></div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Technical Reports</h3>
-                    <p className="text-sm text-gray-600">Comprehensive documentation and findings</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-blue-800 rounded-full mt-2"></div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Expert Testimony</h3>
-                    <p className="text-sm text-gray-600">Court-qualified expert witness services</p>
-                  </div>
-                </div>
-              </div>
-              <Link
-                to="/services/explosives-analysis"
-                className="inline-flex items-center text-blue-800 hover:text-blue-900 font-semibold"
-              >
-                Learn More <ArrowRight className="h-4 w-4 ml-1" />
-              </Link>
-            </div>
-          </div>
+          ))}
         </div>
 
         {/* CTA Section */}
