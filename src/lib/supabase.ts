@@ -803,9 +803,23 @@ export class DatabaseService {
 
   static async updateService(id: string, updates: Partial<any>) {
     try {
+      // Only include fields that exist in the database schema
+      const allowedFields = [
+        'title', 'title_ar', 'title_en',
+        'description', 'description_ar', 'description_en',
+        'icon', 'category', 'features', 'is_active'
+      ];
+      
+      const filteredUpdates = Object.keys(updates)
+        .filter(key => allowedFields.includes(key))
+        .reduce((obj, key) => {
+          obj[key] = updates[key];
+          return obj;
+        }, {} as any);
+
       const { data, error } = await supabase
         .from('services')
-        .update({ ...updates, updated_at: new Date().toISOString() })
+        .update({ ...filteredUpdates, updated_at: new Date().toISOString() })
         .eq('id', id)
         .select()
         .single();
