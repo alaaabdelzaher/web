@@ -804,6 +804,7 @@ export class DatabaseService {
       return data || [];
     } catch (error) {
       console.error('Error fetching services:', error);
+      // Return empty array if fetch fails to prevent app crash
       return [];
     }
   }
