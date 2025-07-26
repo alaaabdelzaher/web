@@ -22,6 +22,7 @@ function App() {
         <div className="min-h-screen bg-white">
           <Routes>
             <Route path="/admin-dashboard-secure" element={<SecureDashboard />} />
+            <Route path="/admin-dashboard-secure/*" element={<SecureDashboard />} />
             <Route path="/*" element={
               <>
                 <Navbar />
