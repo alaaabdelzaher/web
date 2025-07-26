@@ -64,6 +64,16 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   });
   const [savingAbout, setSavingAbout] = useState(false);
 
+  // Contact Info State
+  const [contactInfo, setContactInfo] = useState({
+    phone: '+966 XX XXX XXXX',
+    email: 'info@aabdelzaher.com',
+    address_ar: 'المملكة العربية السعودية، الرياض',
+    address_en: 'Saudi Arabia, Riyadh',
+    emergency_phone: '+966 XX XXX XXXX'
+  });
+  const [savingContact, setSavingContact] = useState(false);
+
   useEffect(() => {
     loadAllData();
   }, []);
@@ -87,6 +97,17 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
           setAboutContent(parsedContent);
         } catch (e) {
           console.log('About content not in JSON format');
+        }
+      }
+      
+      // Load contact info
+      const contactData = await DatabaseService.getContentSection('contact_info');
+      if (contactData?.content) {
+        try {
+          const parsedContact = JSON.parse(contactData.content);
+          setContactInfo(prev => ({ ...prev, ...parsedContact }));
+        } catch (e) {
+          console.log('Using default contact info');
         }
       }
     } catch (error) {
@@ -242,6 +263,20 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     }
   };
 
+  // Contact Info Functions
+  const handleSaveContact = async () => {
+    try {
+      setSavingContact(true);
+      await DatabaseService.updateContentSectionMultilingual('contact_info', contactInfo);
+      alert('تم حفظ معلومات الاتصال بنجاح');
+    } catch (error) {
+      console.error('Error saving contact info:', error);
+      alert('حدث خطأ في حفظ معلومات الاتصال');
+    } finally {
+      setSavingContact(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -316,6 +351,18 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 {language === 'ar' ? 'صفحة من نحن' : 'About Page'}
               </button>
             </div>
+              <button
+                onClick={() => setActiveTab('contact')}
+                className={`w-full flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  activeTab === 'contact'
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                <Phone className="mr-3 h-5 w-5" />
+                {language === 'ar' ? 'معلومات الاتصال' : 'Contact Info'}
+              </button>
+              
           </nav>
           
           <div className="absolute bottom-0 w-64 p-6">

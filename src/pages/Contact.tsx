@@ -5,6 +5,13 @@ import { DatabaseService } from '../lib/supabase';
 
 const Contact = () => {
   const { language, t } = useLanguage();
+  const [contactInfo, setContactInfo] = useState({
+    phone: '+966 XX XXX XXXX',
+    email: 'info@aabdelzaher.com',
+    address_ar: 'المملكة العربية السعودية، الرياض',
+    address_en: 'Saudi Arabia, Riyadh',
+    emergency_phone: '+966 XX XXX XXXX'
+  });
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -15,6 +22,21 @@ const Contact = () => {
 
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
+
+  React.useEffect(() => {
+    const loadContactInfo = async () => {
+      try {
+        const contactData = await DatabaseService.getContentSection('contact_info');
+        if (contactData?.content) {
+          const parsedContact = JSON.parse(contactData.content);
+          setContactInfo(prev => ({ ...prev, ...parsedContact }));
+        }
+      } catch (error) {
+        console.log('Using default contact info');
+      }
+    };
+    loadContactInfo();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,14 +222,14 @@ const Contact = () => {
                   <Phone className="h-5 w-5 text-blue-800" />
                   <div>
                     <div className="font-semibold">Phone</div>
-                    <div className="text-gray-600">+966 XX XXX XXXX</div>
+                    <div className="text-gray-600">{contactInfo.phone}</div>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
                   <Mail className="h-5 w-5 text-blue-800" />
                   <div>
                     <div className="font-semibold">Email</div>
-                    <div className="text-gray-600">info@aabdelzaher.com</div>
+                    <div className="text-gray-600">{contactInfo.email}</div>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
@@ -215,9 +237,7 @@ const Contact = () => {
                   <div>
                     <div className="font-semibold">Address</div>
                     <div className="text-gray-600">
-                      المملكة العربية السعودية<br />
-                      الرياض<br />
-                      [العنوان التفصيلي]
+                      {language === 'ar' ? contactInfo.address_ar : contactInfo.address_en}
                     </div>
                   </div>
                 </div>
@@ -254,7 +274,7 @@ const Contact = () => {
                 For urgent technical consultations or emergency cases, 
                 contact our 24/7 emergency hotline:
               </p>
-              <div className="text-2xl font-bold">+966 XX XXX XXXX</div>
+              <div className="text-2xl font-bold">{contactInfo.emergency_phone}</div>
               <div className="text-blue-100 text-sm mt-2">
                 Available 24 hours a day, 7 days a week
               </div>

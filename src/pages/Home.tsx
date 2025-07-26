@@ -6,6 +6,10 @@ import { DatabaseService } from '../lib/supabase';
 
 const Home = () => {
   const { language, t } = useLanguage();
+  const [contactInfo, setContactInfo] = useState({
+    phone: '+966 XX XXX XXXX',
+    email: 'info@aabdelzaher.com'
+  });
   const [services, setServices] = useState<any[]>([]);
   const [certifications, setCertifications] = useState<any[]>([]);
   const [testimonials, setTestimonials] = useState<any[]>([]);
@@ -27,6 +31,17 @@ const Home = () => {
         setCertifications(certificationsData);
         setTestimonials(testimonialsData);
         setStats(statsData);
+        
+        // Load contact info
+        const contactData = await DatabaseService.getContentSection('contact_info');
+        if (contactData?.content) {
+          try {
+            const parsedContact = JSON.parse(contactData.content);
+            setContactInfo(prev => ({ ...prev, ...parsedContact }));
+          } catch (e) {
+            console.log('Using default contact info');
+          }
+        }
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -374,11 +389,11 @@ const Home = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl mx-auto">
               <div className="flex items-center justify-center space-x-3">
                 <Phone className="h-5 w-5 text-blue-300" />
-                <span className="text-blue-100">+966 XX XXX XXXX</span>
+                <span className="text-blue-100">{contactInfo.phone}</span>
               </div>
               <div className="flex items-center justify-center space-x-3">
                 <Mail className="h-5 w-5 text-blue-300" />
-                <span className="text-blue-100">info@aabdelzaher.com</span>
+                <span className="text-blue-100">{contactInfo.email}</span>
               </div>
             </div>
           </div>
