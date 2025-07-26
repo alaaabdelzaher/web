@@ -9,7 +9,7 @@ const Footer = () => {
   const [contactInfo, setContactInfo] = React.useState({
     phone: '+966 XX XXX XXXX',
     email: 'info@aabdelzaher.com',
-    address_ar: 'المملكة العربية السعودية، الرياض',
+    address_ar: 'مدينة الفسطاط',
     address_en: 'Saudi Arabia, Riyadh'
   });
 
