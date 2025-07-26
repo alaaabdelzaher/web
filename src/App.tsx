@@ -22,22 +22,19 @@ function App() {
         <div className="min-h-screen bg-white">
           <Routes>
             <Route path="/admin-dashboard-secure" element={<SecureDashboard />} />
-            <Route path="/admin-dashboard-secure/*" element={<SecureDashboard />} />
             <Route path="/*" element={
               <>
                 <Navbar />
                 <main>
                   <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/services" element={<Services />} />
-                    <Route path="/services/civil-protection" element={<CivilProtection />} />
-                    <Route path="/services/forensics" element={<Forensics />} />
-                    <Route path="/services/explosives-analysis" element={<ExplosivesAnalysis />} />
-                    <Route path="/about" element={<About />} />
-                    <Route path="/contact" element={<Contact />} />
-                    <Route path="/blog" element={<Blog />} />
-                    <Route path="/blog/:id" element={<BlogPost />} />
-                  </Routes>
+            <Route path="/services/civil-protection" element={<CivilProtection />} />
+            <Route path="/services/forensics" element={<Forensics />} />
+            <Route path="/services/explosives-analysis" element={<ExplosivesAnalysis />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:id" element={<BlogPost />} />
+                  <Home />
                 </main>
                 <Footer />
                 <Chatbot />
