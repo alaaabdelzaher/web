@@ -300,139 +300,33 @@ const Services = () => {
                     </div>
                   ))}
                 </div>
-                <button
-                  onClick={() => toggleService(service.category)}
-                  className="inline-flex items-center text-blue-800 hover:text-blue-900 font-semibold transition-colors"
-                >
-                  {language === 'ar' ? 'اعرف المزيد' : 'Learn More'} 
-                  <ArrowRight className="h-4 w-4 ml-1" />
-                </button>
               </div>
             </div>
           ))}
         </div>
 
-        {/* المحتوى المفصل */}
-        {expandedService && detailedContent[expandedService as keyof typeof detailedContent] && (
-          <div className="mt-16 bg-white rounded-lg shadow-xl p-8 border-t-4 border-blue-800">
-            <div className="mb-8">
-              <button
-                onClick={() => setExpandedService(null)}
-                className="text-gray-500 hover:text-gray-700 mb-4"
-              >
-                ← {language === 'ar' ? 'العودة' : 'Back'}
-              </button>
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                {detailedContent[expandedService as keyof typeof detailedContent].title[language]}
-              </h2>
-              <p className="text-xl text-gray-600 leading-relaxed">
-                {detailedContent[expandedService as keyof typeof detailedContent].description[language]}
-              </p>
-            </div>
-
-            {/* الخدمات المفصلة */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-              {detailedContent[expandedService as keyof typeof detailedContent].services.map((service, index) => (
-                <div key={index} className="bg-gray-50 rounded-lg p-6">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                    {service.title[language]}
-                  </h3>
-                  <p className="text-gray-600 mb-4 leading-relaxed">
-                    {service.description[language]}
-                  </p>
-                  <div className="space-y-2">
-                    {service.features.map((feature, idx) => (
-                      <div key={idx} className="flex items-start">
-                        <CheckCircle className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm text-gray-700">{feature[language]}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* دراسة حالة */}
-            <div className="bg-blue-50 rounded-lg p-8">
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                {detailedContent[expandedService as keyof typeof detailedContent].caseStudy.title[language]}
-              </h3>
-              <p className="text-gray-700 mb-6 leading-relaxed">
-                {detailedContent[expandedService as keyof typeof detailedContent].caseStudy.description[language]}
-              </p>
-              <div className="bg-white rounded-lg p-6">
-                <h4 className="font-semibold text-gray-900 mb-4">
-                  {language === 'ar' ? 'النتائج المحققة:' : 'Achieved Results:'}
-                </h4>
-                <div className="space-y-2">
-                  {detailedContent[expandedService as keyof typeof detailedContent].caseStudy.results.map((result, idx) => (
-                    <div key={idx} className="flex items-center">
-                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
-                      <span className="text-gray-700">{result[language]}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* دعوة للعمل */}
-            <div className="mt-8 text-center">
-              <div className="bg-gradient-to-r from-blue-800 to-blue-900 text-white rounded-lg p-6">
-                <h3 className="text-xl font-bold mb-4">
-                  {language === 'ar' ? 'هل تحتاج استشارة متخصصة؟' : 'Need Specialized Consultation?'}
-                </h3>
-                <p className="text-blue-100 mb-6">
-                  {language === 'ar' ? 
-                    'تواصل معنا اليوم للحصول على استشارة فنية متخصصة في هذا المجال.' :
-                    'Contact us today for specialized technical consultation in this field.'
-                  }
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Link
-                    to="/contact"
-                    className="bg-orange-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors"
-                  >
-                    {language === 'ar' ? 'احجز استشارة' : 'Book Consultation'}
-                  </Link>
-                  <div className="flex items-center justify-center space-x-4 text-blue-100">
-                    <div className="flex items-center">
-                      <Phone className="h-4 w-4 mr-2" />
-                      <span>+966 XX XXX XXXX</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Mail className="h-4 w-4 mr-2" />
-                      <span>info@aabdelzaher.com</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* CTA Section */}
-        {!expandedService && (
-          <div className="mt-16 bg-blue-800 text-white rounded-lg p-8 text-center">
-            <h2 className="text-3xl font-bold mb-4">Need Expert Consultation?</h2>
-            <p className="text-xl text-blue-100 mb-6">
-              Contact us today to discuss your specific needs and learn how we can help.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                to="/contact"
-                className="bg-orange-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors"
-              >
-                Book Consultation
-              </Link>
-              <Link
-                to="/contact"
-                className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-800 transition-colors"
-              >
-                Contact Us
-              </Link>
-            </div>
+        <div className="mt-16 bg-blue-800 text-white rounded-lg p-8 text-center">
+          <h2 className="text-3xl font-bold mb-4">Need Expert Consultation?</h2>
+          <p className="text-xl text-blue-100 mb-6">
+            Contact us today to discuss your specific needs and learn how we can help.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              to="/contact"
+              className="bg-orange-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors"
+            >
+              Book Consultation
+            </Link>
+            <Link
+              to="/contact"
+              className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-800 transition-colors"
+            >
+              Contact Us
+            </Link>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
