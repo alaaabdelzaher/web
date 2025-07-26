@@ -267,7 +267,10 @@ const Home = () => {
                     ))}
                   </div>
                   <Link
-                    to={`/services/${service.category}`}
+                    to={service.category === 'civil-protection' ? '/services/civil-protection' : 
+                         service.category === 'forensics' ? '/services/forensics' : 
+                         service.category === 'explosives-analysis' ? '/services/explosives-analysis' : 
+                         '/services'}
                     className="inline-flex items-center text-blue-800 hover:text-blue-900 font-semibold transition-colors"
                   >
                     {language === 'ar' ? 'اعرف المزيد' : 'Learn More'}
