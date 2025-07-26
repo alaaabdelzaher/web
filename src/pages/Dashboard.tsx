@@ -5,6 +5,7 @@ import {
   FileText, 
   MessageSquare, 
   Users,
+  Phone,
   Plus,
   Edit,
   Trash2,
